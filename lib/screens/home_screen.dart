@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../data/products.dart';
 import '../widgets/banner_slider.dart';
-import '../widgets/category_card.dart';
-import '../widgets/product_card.dart';
 import '../widgets/bottom_nav.dart';
+import '../widgets/category_card.dart';
+import '../widgets/category_filter.dart';
+import '../widgets/product_card.dart';
 import 'cart_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,8 +18,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 0;
   String searchText = "";
+  String selectedCategory = "All";
 
   final List<String> categories = [
+    "All",
+    "Engine Oil",
+    "Battery",
+    "Brake",
+    "Helmet",
+    "Tyre",
+    "Bulb",
+  ];
+
+  final List<String> topCategories = [
     "Engine Oil",
     "Battery",
     "Brake",
@@ -39,8 +51,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final filteredProducts = products.where((product) {
-      return product.name.toLowerCase().contains(searchText.toLowerCase()) ||
-          product.category.toLowerCase().contains(searchText.toLowerCase());
+      final searchMatch =
+          product.name.toLowerCase().contains(searchText.toLowerCase()) ||
+              product.category.toLowerCase().contains(searchText.toLowerCase());
+
+      final categoryMatch = selectedCategory == "All"
+          ? true
+          : product.category == selectedCategory;
+
+      return searchMatch && categoryMatch;
     }).toList();
 
     return Scaffold(
@@ -93,6 +112,25 @@ class _HomeScreenState extends State<HomeScreen> {
             const Padding(
               padding: EdgeInsets.all(12),
               child: Text(
+                "Filter By Category",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            CategoryFilter(
+              categories: categories,
+              selectedCategory: selectedCategory,
+              onCategorySelected: (category) {
+                setState(() {
+                  selectedCategory = category;
+                });
+              },
+            ),
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: Text(
                 "Categories",
                 style: TextStyle(
                   fontSize: 20,
@@ -104,10 +142,10 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 110,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
+                itemCount: topCategories.length,
                 itemBuilder: (context, index) {
                   return CategoryCard(
-                    title: categories[index],
+                    title: topCategories[index],
                     icon: categoryIcons[index],
                   );
                 },
