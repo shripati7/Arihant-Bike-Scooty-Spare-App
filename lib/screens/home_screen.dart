@@ -16,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 0;
+  String searchText = "";
 
   final List<String> categories = [
     "Engine Oil",
@@ -68,6 +69,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredProducts = products.where((product) {
+      return product.name.toLowerCase().contains(searchText.toLowerCase()) ||
+          product.category.toLowerCase().contains(searchText.toLowerCase());
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Arihant Bike & Scooty Spare"),
@@ -99,6 +105,11 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
+                onChanged: (value) {
+                  setState(() {
+                    searchText = value;
+                  });
+                },
                 decoration: InputDecoration(
                   hintText: "Search spare parts...",
                   prefixIcon: const Icon(Icons.search),
@@ -108,6 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 10),
             const BannerSlider(),
             const Padding(
               padding: EdgeInsets.all(12),
@@ -146,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.all(10),
-              itemCount: products.length,
+              itemCount: filteredProducts.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 0.72,
@@ -155,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               itemBuilder: (context, index) {
                 return ProductCard(
-                  product: products[index],
+                  product: filteredProducts[index],
                 );
               },
             ),
