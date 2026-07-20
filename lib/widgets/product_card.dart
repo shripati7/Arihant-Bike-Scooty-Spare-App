@@ -1,0 +1,84 @@
+import 'package:flutter/material.dart';
+
+import '../models/product.dart';
+import '../screens/product_detail_screen.dart';
+
+class ProductCard extends StatelessWidget {
+  final Product product;
+
+  const ProductCard({
+    super.key,
+    required this.product,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductDetailScreen(product: product),
+          ),
+        );
+      },
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: product.image.isEmpty
+                    ? const Icon(
+                        Icons.motorcycle,
+                        size: 70,
+                        color: Colors.red,
+                      )
+                    : Image.asset(
+                        product.image,
+                        fit: BoxFit.contain,
+                      ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                product.name,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "₹${product.price.toStringAsFixed(0)}",
+                style: const TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.star,
+                    color: Colors.orange,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(product.rating.toString()),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
