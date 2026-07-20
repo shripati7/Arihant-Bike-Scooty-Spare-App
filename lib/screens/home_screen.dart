@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../models/product.dart';
+import '../data/products.dart';
 import '../widgets/banner_slider.dart';
 import '../widgets/category_card.dart';
 import '../widgets/product_card.dart';
@@ -36,37 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
     Icons.lightbulb,
   ];
 
-  final List<Product> products = [
-    Product(
-      name: "Engine Oil 900ml",
-      image: "",
-      price: 299,
-      category: "Engine Oil",
-      rating: 4.8,
-    ),
-    Product(
-      name: "Amaron Battery",
-      image: "",
-      price: 899,
-      category: "Battery",
-      rating: 4.7,
-    ),
-    Product(
-      name: "Brake Shoe",
-      image: "",
-      price: 249,
-      category: "Brake",
-      rating: 4.6,
-    ),
-    Product(
-      name: "Helmet",
-      image: "",
-      price: 799,
-      category: "Helmet",
-      rating: 4.5,
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final filteredProducts = products.where((product) {
@@ -86,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const CartScreen(),
+                builder: (_) => const CartScreen(),
               ),
             );
             return;
