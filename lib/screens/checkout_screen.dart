@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/cart_provider.dart';
 
@@ -156,15 +157,67 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     "Continue",
                     style: TextStyle(fontSize: 18),
                   ),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            "Customer details saved successfully.",
-                          ),
-                        ),
+                  onPressed: () async {
+                    if (!_formKey.currentState!.validate()) return;
+
+                    String message = """
+*Arihant Bike & Scooty Spare*
+
+👤 Customer Details
+
+Name: ${nameController.text}
+Mobile: ${mobileController.text}
+
+📍 Address:
+${addressController.text}
+
+🛒 Order Items
+
+""";
+                    for (final item in cart.cartItems) {
+                      message +=
+                          "${item.name} x ${item.quantity} = ₹${(item.price * item.quantity).toStringAsFixed(0)}\n";
+                    }
+
+                    message += """
+
+----------------------------
+
+Total Items : ${cart.itemCount}
+
+Grand Total : ₹${cart.totalPrice.toStringAsFixed(0)}
+
+Notes:
+${notesController.text}
+""";
+
+                    final Uri whatsappUrl = Uri.parse(
+                      "https://wa.me/918178478220?text=${Uri.encodeComponent(message)}",
+                    );
+
+                    if (await canLaunchUrl(whatsappUrl)) {
+                      await launchUrl(
+                        whatsappUrl,
+                        mode: LaunchMode.externalApplication,
                       );
+
+                      cart.clearCart();
+
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Order sent successfully."),
+                          ),
+                        );
+                      }
+                    } else {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Unable to open WhatsApp."),
+                          ),
+                        );
+                      }
                     }
                   },
                 ),
