@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1073271165345",
+    "project_id": "arihant-bike-scooty-spare",
+    "storage_bucket": "arihant-bike-scooty-spare.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1073271165345:android:4d99714ca0c05698cdfbe0",
+        "android_client_info": {
+          "package_name": "com.example.spare_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhR2nAGGD7Nl2XKUR78ISraHP5_A89ziQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

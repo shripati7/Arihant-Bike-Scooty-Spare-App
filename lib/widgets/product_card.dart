@@ -40,10 +40,29 @@ class ProductCard extends StatelessWidget {
                         size: 70,
                         color: Colors.red,
                       )
-                    : Image.asset(
-                        product.image,
-                        fit: BoxFit.contain,
-                      ),
+                    : product.image.startsWith("http")
+                        ? Image.network(
+                            product.image,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.motorcycle,
+                                size: 70,
+                                color: Colors.red,
+                              );
+                            },
+                          )
+                        : Image.asset(
+                            product.image,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.motorcycle,
+                                size: 70,
+                                color: Colors.red,
+                              );
+                            },
+                          ),
               ),
               const SizedBox(height: 8),
               Text(
