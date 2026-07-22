@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../data/products.dart';
+import '../admin/admin_login_screen.dart';
+import '../models/product.dart';
+import '../services/firestore_service.dart';
 import '../widgets/banner_slider.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/category_card.dart';
@@ -16,6 +18,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final FirestoreService firestoreService = FirestoreService();
+
   int currentIndex = 0;
   String searchText = "";
   String selectedCategory = "All";
@@ -50,22 +54,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredProducts = products.where((product) {
-      final searchMatch =
-          product.name.toLowerCase().contains(searchText.toLowerCase()) ||
-              product.category.toLowerCase().contains(searchText.toLowerCase());
-
-      final categoryMatch = selectedCategory == "All"
-          ? true
-          : product.category == selectedCategory;
-
-      return searchMatch && categoryMatch;
-    }).toList();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Arihant Bike & Scooty Spare"),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.admin_panel_settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AdminLoginScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNav(
         currentIndex: currentIndex,
@@ -161,20 +166,72 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(10),
-              itemCount: filteredProducts.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.72,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemBuilder: (context, index) {
-                return ProductCard(
-                  product: filteredProducts[index],
+            StreamBuilder<List<Product>>(
+              stream: firestoreService.getProducts(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(30),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(30),
+                      child: Text("Something went wrong"),
+                    ),
+                  );
+                }
+
+                final allProducts = snapshot.data ?? [];
+
+                final filteredProducts = allProducts.where((product) {
+                  final searchMatch = product.name
+                          .toLowerCase()
+                          .contains(searchText.toLowerCase()) ||
+                      product.category
+                          .toLowerCase()
+                          .contains(searchText.toLowerCase());
+
+                  final categoryMatch = selectedCategory == "All"
+                      ? true
+                      : product.category == selectedCategory;
+
+                  return searchMatch && categoryMatch;
+                }).toList();
+
+                if (filteredProducts.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(30),
+                    child: Center(
+                      child: Text(
+                        "No Products Found",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  );
+                }
+
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(10),
+                  itemCount: filteredProducts.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.72,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemBuilder: (context, index) {
+                    return ProductCard(
+                      product: filteredProducts[index],
+                    );
+                  },
                 );
               },
             ),
