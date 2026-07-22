@@ -31,11 +31,31 @@ class ProductDetailScreen extends StatelessWidget {
                       size: 140,
                       color: Colors.red,
                     )
-                  : Image.asset(
-                      product.image,
-                      height: 220,
-                      fit: BoxFit.contain,
-                    ),
+                  : product.image.startsWith("http")
+                      ? Image.network(
+                          product.image,
+                          height: 220,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.motorcycle,
+                              size: 140,
+                              color: Colors.red,
+                            );
+                          },
+                        )
+                      : Image.asset(
+                          product.image,
+                          height: 220,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.motorcycle,
+                              size: 140,
+                              color: Colors.red,
+                            );
+                          },
+                        ),
             ),
             const SizedBox(height: 20),
             Text(
@@ -48,7 +68,10 @@ class ProductDetailScreen extends StatelessWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                const Icon(Icons.star, color: Colors.orange),
+                const Icon(
+                  Icons.star,
+                  color: Colors.orange,
+                ),
                 const SizedBox(width: 5),
                 Text(
                   product.rating.toString(),
@@ -76,7 +99,8 @@ class ProductDetailScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               "${product.name} is a high quality spare part suitable for bikes and scooties. "
-              "Available at Arihant Bike & Scooty Spare.",
+              "Available at Arihant Bike & Scooty Spare. Genuine quality, competitive pricing, "
+              "and reliable performance for daily use.",
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 30),
