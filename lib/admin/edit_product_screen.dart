@@ -1,49 +1,72 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({super.key});
+class EditProductScreen extends StatefulWidget {
+  final String id;
+  final Map<String, dynamic> product;
+
+  const EditProductScreen({
+    super.key,
+    required this.id,
+    required this.product,
+  });
 
   @override
-  State<AddProductScreen> createState() => _AddProductScreenState();
+  State<EditProductScreen> createState() => _EditProductScreenState();
 }
 
-class _AddProductScreenState extends State<AddProductScreen> {
-  final nameController = TextEditingController();
-  final priceController = TextEditingController();
-  final imageController = TextEditingController();
-  final categoryController = TextEditingController();
-  final stockController = TextEditingController();
+class _EditProductScreenState extends State<EditProductScreen> {
+  late TextEditingController nameController;
+  late TextEditingController priceController;
+  late TextEditingController imageController;
+  late TextEditingController categoryController;
+  late TextEditingController stockController;
 
   bool loading = false;
 
-  Future<void> saveProduct() async {
-    if (nameController.text.isEmpty ||
-        priceController.text.isEmpty ||
-        imageController.text.isEmpty ||
-        categoryController.text.isEmpty ||
-        stockController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields")),
-      );
-      return;
-    }
+  @override
+  void initState() {
+    super.initState();
 
+    nameController = TextEditingController(text: widget.product["name"] ?? "");
+
+    priceController = TextEditingController(
+      text: widget.product["price"].toString(),
+    );
+
+    imageController =
+        TextEditingController(text: widget.product["image"] ?? "");
+
+    categoryController =
+        TextEditingController(text: widget.product["category"] ?? "");
+
+    stockController = TextEditingController(
+      text: widget.product["stock"].toString(),
+    );
+  }
+
+  Future<void> updateProduct() async {
     setState(() => loading = true);
 
-    await FirebaseFirestore.instance.collection("products").add({
+    await FirebaseFirestore.instance
+        .collection("products")
+        .doc(widget.id)
+        .update({
       "name": nameController.text.trim(),
       "price": double.parse(priceController.text),
       "image": imageController.text.trim(),
       "category": categoryController.text.trim(),
-      "rating": 5.0,
       "stock": int.parse(stockController.text),
     });
 
     setState(() => loading = false);
 
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Product Added Successfully")),
+      const SnackBar(
+        content: Text("Product Updated"),
+      ),
     );
 
     Navigator.pop(context);
@@ -53,7 +76,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Product"),
+        title: const Text("Edit Product"),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -63,7 +86,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
               controller: nameController,
               decoration: const InputDecoration(
                 labelText: "Product Name",
-                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 15),
@@ -72,7 +94,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: "Price",
-                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 15),
@@ -80,7 +101,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
               controller: imageController,
               decoration: const InputDecoration(
                 labelText: "Image URL",
-                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 15),
@@ -88,7 +108,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
               controller: categoryController,
               decoration: const InputDecoration(
                 labelText: "Category",
-                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 15),
@@ -97,7 +116,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: "Stock",
-                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 30),
@@ -105,10 +123,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: loading ? null : saveProduct,
+                onPressed: loading ? null : updateProduct,
                 child: loading
                     ? const CircularProgressIndicator()
-                    : const Text("Save Product"),
+                    : const Text("Update Product"),
               ),
             ),
           ],

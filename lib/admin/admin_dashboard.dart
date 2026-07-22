@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'add_product_screen.dart';
+import 'manage_products_screen.dart';
+import '../screens/orders_screen.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -40,9 +42,27 @@ class AdminDashboard extends StatelessWidget {
                 icon: const Icon(Icons.edit),
                 label: const Text("Manage Products"),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Coming Soon"),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ManageProductsScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.shopping_cart_checkout),
+                label: const Text("View Orders"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const OrdersScreen(),
                     ),
                   );
                 },

@@ -1,55 +1,72 @@
 import 'package:flutter/material.dart';
-import '../models/product.dart';
+
+import '../models/cart_item.dart';
 
 class CartProvider extends ChangeNotifier {
-  final List<Product> _cartItems = [];
+  final Map<String, CartItem> _items = {};
 
-  List<Product> get cartItems => _cartItems;
+  Map<String, CartItem> get items => _items;
 
-  int get itemCount => _cartItems.fold(0, (sum, item) => sum + item.quantity);
+  List<CartItem> get cartItems => _items.values.toList();
 
-  double get totalPrice => _cartItems.fold(
-        0,
-        (sum, item) => sum + (item.price * item.quantity),
+  int get itemCount => _items.length;
+
+  double get totalAmount {
+    double total = 0;
+
+    for (var item in _items.values) {
+      total += item.total;
+    }
+
+    return total;
+  }
+
+  void addItem({
+    required String id,
+    required String name,
+    required String image,
+    required double price,
+  }) {
+    if (_items.containsKey(id)) {
+      _items[id]!.quantity++;
+    } else {
+      _items[id] = CartItem(
+        id: id,
+        name: name,
+        image: image,
+        price: price,
       );
-
-  void addToCart(Product product) {
-    final index = _cartItems.indexWhere(
-      (item) => item.name == product.name,
-    );
-
-    if (index != -1) {
-      _cartItems[index].quantity++;
-    } else {
-      product.quantity = 1;
-      _cartItems.add(product);
     }
 
     notifyListeners();
   }
 
-  void increaseQuantity(Product product) {
-    product.quantity++;
+  void removeItem(String id) {
+    _items.remove(id);
     notifyListeners();
   }
 
-  void decreaseQuantity(Product product) {
-    if (product.quantity > 1) {
-      product.quantity--;
+  void increaseQuantity(String id) {
+    if (_items.containsKey(id)) {
+      _items[id]!.quantity++;
+      notifyListeners();
+    }
+  }
+
+  void decreaseQuantity(String id) {
+    if (!_items.containsKey(id)) return;
+
+    if (_items[id]!.quantity > 1) {
+      _items[id]!.quantity--;
     } else {
-      _cartItems.remove(product);
+      _items.remove(id);
     }
 
-    notifyListeners();
-  }
-
-  void removeFromCart(Product product) {
-    _cartItems.remove(product);
     notifyListeners();
   }
 
   void clearCart() {
-    _cartItems.clear();
+    _items.clear();
     notifyListeners();
   }
 }

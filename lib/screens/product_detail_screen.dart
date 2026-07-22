@@ -101,7 +101,9 @@ class ProductDetailScreen extends StatelessWidget {
               "${product.name} is a high quality spare part suitable for bikes and scooties. "
               "Available at Arihant Bike & Scooty Spare. Genuine quality, competitive pricing, "
               "and reliable performance for daily use.",
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 30),
             SizedBox(
@@ -114,7 +116,12 @@ class ProductDetailScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 18),
                 ),
                 onPressed: () {
-                  context.read<CartProvider>().addToCart(product);
+                  context.read<CartProvider>().addItem(
+                        id: product.id,
+                        name: product.name,
+                        image: product.image,
+                        price: product.price,
+                      );
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

@@ -9,18 +9,17 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cart = context.watch<CartProvider>();
+    final cart = Provider.of<CartProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("My Cart"),
-        centerTitle: true,
       ),
       body: cart.cartItems.isEmpty
           ? const Center(
               child: Text(
                 "Your cart is empty",
-                style: TextStyle(fontSize: 20),
+                style: TextStyle(fontSize: 18),
               ),
             )
           : Column(
@@ -29,65 +28,44 @@ class CartScreen extends StatelessWidget {
                   child: ListView.builder(
                     itemCount: cart.cartItems.length,
                     itemBuilder: (context, index) {
-                      final product = cart.cartItems[index];
+                      final item = cart.cartItems[index];
 
                       return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            children: [
-                              ListTile(
-                                leading: const Icon(
-                                  Icons.shopping_bag,
-                                  color: Colors.red,
-                                ),
-                                title: Text(product.name),
-                                subtitle: Text(
-                                  "₹${product.price.toStringAsFixed(0)}",
-                                ),
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          cart.decreaseQuantity(product);
-                                        },
-                                        icon: const Icon(Icons.remove_circle),
-                                      ),
-                                      Text(
-                                        product.quantity.toString(),
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () {
-                                          cart.increaseQuantity(product);
-                                        },
-                                        icon: const Icon(Icons.add_circle),
-                                      ),
-                                    ],
+                        margin: const EdgeInsets.all(10),
+                        child: ListTile(
+                          leading: Image.network(
+                            item.image,
+                            width: 60,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.image),
+                          ),
+                          title: Text(item.name),
+                          subtitle: Text(
+                            "₹${item.price.toStringAsFixed(0)} x ${item.quantity}",
+                          ),
+                          trailing: SizedBox(
+                            width: 120,
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.remove_circle_outline,
                                   ),
-                                  Text(
-                                    "₹${(product.price * product.quantity).toStringAsFixed(0)}",
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  onPressed: () {
+                                    cart.decreaseQuantity(item.id);
+                                  },
+                                ),
+                                Text(item.quantity.toString()),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.add_circle_outline,
                                   ),
-                                ],
-                              ),
-                            ],
+                                  onPressed: () {
+                                    cart.increaseQuantity(item.id);
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -96,50 +74,31 @@ class CartScreen extends StatelessWidget {
                 ),
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: Colors.grey),
-                    ),
-                  ),
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Total",
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            "₹${cart.totalPrice.toStringAsFixed(0)}",
-                            style: const TextStyle(
-                              fontSize: 22,
-                              color: Colors.green,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        "Total : ₹${cart.totalAmount.toStringAsFixed(0)}",
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 10),
                       SizedBox(
                         width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.shopping_bag),
+                          label: const Text("Checkout"),
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const CheckoutScreen(),
+                                builder: (_) => CheckoutScreen(
+                                  totalAmount: cart.totalAmount,
+                                ),
                               ),
                             );
                           },
-                          child: const Text(
-                            "Place Order",
-                            style: TextStyle(fontSize: 18),
-                          ),
                         ),
                       ),
                     ],
