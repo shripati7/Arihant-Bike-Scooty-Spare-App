@@ -32,9 +32,10 @@ class CartProvider extends ChangeNotifier {
   }) {
     if (_items.containsKey(id)) {
       _items[id]!.quantity++;
-      _items[id]!.price = price;
+
+      _updatePrice(_items[id]!);
     } else {
-      _items[id] = CartItem(
+      final item = CartItem(
         id: id,
         name: name,
         image: image,
@@ -43,6 +44,10 @@ class CartProvider extends ChangeNotifier {
         wholesalePrice: wholesalePrice,
         minimumWholesaleQty: minimumWholesaleQty,
       );
+
+      _updatePrice(item);
+
+      _items[id] = item;
     }
 
     notifyListeners();
@@ -54,17 +59,26 @@ class CartProvider extends ChangeNotifier {
   }
 
   void increaseQuantity(String id) {
-    if (_items.containsKey(id)) {
-      _items[id]!.quantity++;
-      notifyListeners();
-    }
+    if (!_items.containsKey(id)) return;
+
+    final item = _items[id]!;
+
+    item.quantity++;
+
+    _updatePrice(item);
+
+    notifyListeners();
   }
 
   void decreaseQuantity(String id) {
     if (!_items.containsKey(id)) return;
 
-    if (_items[id]!.quantity > 1) {
-      _items[id]!.quantity--;
+    final item = _items[id]!;
+
+    if (item.quantity > 1) {
+      item.quantity--;
+
+      _updatePrice(item);
     } else {
       _items.remove(id);
     }
@@ -75,5 +89,37 @@ class CartProvider extends ChangeNotifier {
   void clearCart() {
     _items.clear();
     notifyListeners();
+  }
+
+  //==============================
+  // Automatic Retail / Wholesale
+  //==============================
+
+  void _updatePrice(CartItem item) {
+    if (item.quantity >= item.minimumWholesaleQty) {
+      item.price = item.wholesalePrice;
+    } else {
+      item.price = item.retailPrice;
+    }
+  }
+
+  bool isWholesaleApplied(String id) {
+    if (!_items.containsKey(id)) return false;
+
+    final item = _items[id]!;
+
+    return item.quantity >= item.minimumWholesaleQty;
+  }
+
+  int remainingForWholesale(String id) {
+    if (!_items.containsKey(id)) return 0;
+
+    final item = _items[id]!;
+
+    if (item.quantity >= item.minimumWholesaleQty) {
+      return 0;
+    }
+
+    return item.minimumWholesaleQty - item.quantity;
   }
 }

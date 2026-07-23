@@ -30,42 +30,112 @@ class CartScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final item = cart.cartItems[index];
 
+                      final wholesaleApplied = cart.isWholesaleApplied(item.id);
+
+                      final remaining = cart.remainingForWholesale(item.id);
+
                       return Card(
                         margin: const EdgeInsets.all(10),
-                        child: ListTile(
-                          leading: Image.network(
-                            item.image,
-                            width: 60,
-                            errorBuilder: (_, __, ___) =>
-                                const Icon(Icons.image),
-                          ),
-                          title: Text(item.name),
-                          subtitle: Text(
-                            "₹${item.price.toStringAsFixed(0)} x ${item.quantity}",
-                          ),
-                          trailing: SizedBox(
-                            width: 120,
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.remove_circle_outline,
-                                  ),
-                                  onPressed: () {
-                                    cart.decreaseQuantity(item.id);
-                                  },
+                        elevation: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: Image.network(
+                                  item.image,
+                                  width: 60,
+                                  errorBuilder: (_, __, ___) =>
+                                      const Icon(Icons.image),
                                 ),
-                                Text(item.quantity.toString()),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.add_circle_outline,
-                                  ),
-                                  onPressed: () {
-                                    cart.increaseQuantity(item.id);
-                                  },
+                                title: Text(item.name),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "₹${item.price.toStringAsFixed(0)} × ${item.quantity}",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      "Subtotal : ₹${item.total.toStringAsFixed(0)}",
+                                    ),
+                                    const SizedBox(height: 8),
+                                    if (wholesaleApplied)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.shade100,
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: const Text(
+                                          "✅ Wholesale Price Applied",
+                                          style: TextStyle(
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      )
+                                    else
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange.shade100,
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          "Add $remaining more item${remaining > 1 ? 's' : ''} to get Wholesale Price",
+                                          style: const TextStyle(
+                                            color: Colors.orange,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                                trailing: SizedBox(
+                                  width: 120,
+                                  child: Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.remove_circle_outline,
+                                        ),
+                                        onPressed: () {
+                                          cart.decreaseQuantity(item.id);
+                                        },
+                                      ),
+                                      Text(
+                                        item.quantity.toString(),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.add_circle_outline,
+                                        ),
+                                        onPressed: () {
+                                          cart.increaseQuantity(item.id);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -74,21 +144,26 @@ class CartScreen extends StatelessWidget {
                 ),
                 Container(
                   padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: Colors.black12),
+                    ),
+                  ),
                   child: Column(
                     children: [
                       Text(
-                        "Total : ₹${cart.totalAmount.toStringAsFixed(0)}",
+                        "Grand Total : ₹${cart.totalAmount.toStringAsFixed(0)}",
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.shopping_bag),
-                          label: const Text("Checkout"),
+                          label: const Text("Proceed to Checkout"),
                           onPressed: () {
                             Navigator.push(
                               context,
