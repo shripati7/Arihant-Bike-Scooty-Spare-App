@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/product.dart';
 import '../providers/cart_provider.dart';
+import '../utils/pricing_helper.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -14,6 +15,13 @@ class ProductDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Temporary: Retail Customer
+    final sellingPrice = PricingHelper.getSellingPrice(
+      product: product,
+      isRetailer: false,
+      quantity: 1,
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(product.name),
@@ -79,15 +87,39 @@ class ProductDetailScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
             Text(
-              "₹${product.price.toStringAsFixed(0)}",
+              "Retail Price",
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              "₹${sellingPrice.toStringAsFixed(0)}",
               style: const TextStyle(
-                fontSize: 28,
+                fontSize: 30,
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
               ),
             ),
+            const SizedBox(height: 12),
+            if (product.wholesalePrice < product.price)
+              Card(
+                color: Colors.blue.shade50,
+                child: ListTile(
+                  leading: const Icon(
+                    Icons.store,
+                    color: Colors.blue,
+                  ),
+                  title: Text(
+                    "Wholesale Price : ₹${product.wholesalePrice.toStringAsFixed(0)}",
+                  ),
+                  subtitle: Text(
+                    "Minimum Order : ${product.minimumWholesaleQty}",
+                  ),
+                ),
+              ),
             const SizedBox(height: 20),
             const Text(
               "Product Description",
@@ -98,12 +130,8 @@ class ProductDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              "${product.name} is a high quality spare part suitable for bikes and scooties. "
-              "Available at Arihant Bike & Scooty Spare. Genuine quality, competitive pricing, "
-              "and reliable performance for daily use.",
-              style: const TextStyle(
-                fontSize: 16,
-              ),
+              "${product.name} is a high quality spare part suitable for bikes and scooties. Genuine quality with reliable performance for daily use.",
+              style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 30),
             SizedBox(
@@ -120,7 +148,10 @@ class ProductDetailScreen extends StatelessWidget {
                         id: product.id,
                         name: product.name,
                         image: product.image,
-                        price: product.price,
+                        price: sellingPrice,
+                        retailPrice: product.price,
+                        wholesalePrice: product.wholesalePrice,
+                        minimumWholesaleQty: product.minimumWholesaleQty,
                       );
 
                   ScaffoldMessenger.of(context).showSnackBar(

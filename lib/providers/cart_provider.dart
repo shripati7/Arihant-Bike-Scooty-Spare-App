@@ -26,15 +26,22 @@ class CartProvider extends ChangeNotifier {
     required String name,
     required String image,
     required double price,
+    required double retailPrice,
+    required double wholesalePrice,
+    required int minimumWholesaleQty,
   }) {
     if (_items.containsKey(id)) {
       _items[id]!.quantity++;
+      _items[id]!.price = price;
     } else {
       _items[id] = CartItem(
         id: id,
         name: name,
         image: image,
         price: price,
+        retailPrice: retailPrice,
+        wholesalePrice: wholesalePrice,
+        minimumWholesaleQty: minimumWholesaleQty,
       );
     }
 

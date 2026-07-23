@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../providers/cart_provider.dart';
 import '../screens/product_detail_screen.dart';
+import '../utils/pricing_helper.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -15,6 +16,12 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sellingPrice = PricingHelper.getSellingPrice(
+      product: product,
+      isRetailer: false,
+      quantity: 1,
+    );
+
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () {
@@ -75,15 +82,25 @@ class ProductCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
-                "₹${product.price.toStringAsFixed(0)}",
+                "₹${sellingPrice.toStringAsFixed(0)}",
                 style: const TextStyle(
                   color: Colors.green,
                   fontWeight: FontWeight.bold,
+                  fontSize: 18,
                 ),
               ),
-              const SizedBox(height: 4),
+              if (product.wholesalePrice < product.price)
+                Text(
+                  "Wholesale ₹${product.wholesalePrice.toStringAsFixed(0)} (Min ${product.minimumWholesaleQty})",
+                  style: const TextStyle(
+                    color: Colors.blue,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              const SizedBox(height: 6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -110,7 +127,10 @@ class ProductCard extends StatelessWidget {
                       id: product.id,
                       name: product.name,
                       image: product.image,
-                      price: product.price,
+                      price: sellingPrice,
+                      retailPrice: product.price,
+                      wholesalePrice: product.wholesalePrice,
+                      minimumWholesaleQty: product.minimumWholesaleQty,
                     );
 
                     ScaffoldMessenger.of(context).showSnackBar(
