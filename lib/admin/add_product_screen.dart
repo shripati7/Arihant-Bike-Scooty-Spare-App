@@ -10,7 +10,16 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final nameController = TextEditingController();
+
+  // Retail Price
   final priceController = TextEditingController();
+
+  // Wholesale Price
+  final wholesalePriceController = TextEditingController();
+
+  // Minimum Qty
+  final minimumWholesaleQtyController = TextEditingController();
+
   final imageController = TextEditingController();
   final categoryController = TextEditingController();
   final stockController = TextEditingController();
@@ -20,11 +29,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Future<void> saveProduct() async {
     if (nameController.text.isEmpty ||
         priceController.text.isEmpty ||
+        wholesalePriceController.text.isEmpty ||
+        minimumWholesaleQtyController.text.isEmpty ||
         imageController.text.isEmpty ||
         categoryController.text.isEmpty ||
         stockController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields")),
+        const SnackBar(
+          content: Text("Please fill all fields"),
+        ),
       );
       return;
     }
@@ -33,7 +46,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     await FirebaseFirestore.instance.collection("products").add({
       "name": nameController.text.trim(),
+
+      // Retail Price
       "price": double.parse(priceController.text),
+
+      // Wholesale Price
+      "wholesalePrice": double.parse(wholesalePriceController.text),
+
+      // Minimum Qty
+      "minimumWholesaleQty": int.parse(minimumWholesaleQtyController.text),
+
       "image": imageController.text.trim(),
       "category": categoryController.text.trim(),
       "rating": 5.0,
@@ -44,11 +66,25 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Product Added Successfully")),
+        const SnackBar(
+          content: Text("Product Added Successfully"),
+        ),
       );
 
       Navigator.pop(context);
     }
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    priceController.dispose();
+    wholesalePriceController.dispose();
+    minimumWholesaleQtyController.dispose();
+    imageController.dispose();
+    categoryController.dispose();
+    stockController.dispose();
+    super.dispose();
   }
 
   @override
@@ -73,7 +109,25 @@ class _AddProductScreenState extends State<AddProductScreen> {
               controller: priceController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: "Price",
+                labelText: "Retail Price",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: wholesalePriceController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: "Wholesale Price",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: minimumWholesaleQtyController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: "Minimum Wholesale Qty",
                 border: OutlineInputBorder(),
               ),
             ),
