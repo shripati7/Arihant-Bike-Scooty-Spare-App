@@ -20,9 +20,9 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final nameController = TextEditingController();
-  final mobileController = TextEditingController();
-  final addressController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController mobileController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
 
   final OrderService orderService = OrderService();
 
@@ -37,19 +37,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> placeOrder() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final cartProvider = context.read<CartProvider>();
+
+    final items = cartProvider.cartItems.map((item) {
+      return {
+        'id': item.id,
+        'name': item.name,
+        'image': item.image,
+        'price': item.price,
+        'quantity': item.quantity,
+        'total': item.total,
+      };
+    }).toList();
+
     final order = OrderModel(
       customerName: nameController.text.trim(),
       mobile: mobileController.text.trim(),
       address: addressController.text.trim(),
       totalAmount: widget.totalAmount,
-      orderDate: DateTime.now().toString(),
+      orderDate: DateTime.now().toIso8601String(),
+      items: items,
     );
 
     await orderService.placeOrder(order);
 
     if (!mounted) return;
 
-    context.read<CartProvider>().clearCart();
+    cartProvider.clearCart();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -96,7 +110,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   prefixIcon: Icon(Icons.phone),
                 ),
                 validator: (value) {
-                  if (value == null || value.length != 10) {
+                  if (value == null || value.trim().length != 10) {
                     return "Enter valid mobile number";
                   }
                   return null;

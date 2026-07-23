@@ -12,7 +12,8 @@ class OrderService {
       'address': order.address,
       'totalAmount': order.totalAmount,
       'orderDate': order.orderDate,
-      'status': 'Pending',
+      'status': order.status,
+      'items': order.items,
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
