@@ -9,6 +9,7 @@ import '../widgets/category_card.dart';
 import '../widgets/category_filter.dart';
 import '../widgets/product_card.dart';
 import 'cart_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -80,6 +81,16 @@ class _HomeScreenState extends State<HomeScreen> {
               context,
               MaterialPageRoute(
                 builder: (_) => const CartScreen(),
+              ),
+            );
+            return;
+          }
+
+          if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ProfileScreen(),
               ),
             );
             return;
