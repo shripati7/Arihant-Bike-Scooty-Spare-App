@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../models/cart_item.dart';
+import '../services/invoice_service.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final DocumentSnapshot order;
@@ -29,7 +34,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     await FirebaseFirestore.instance
         .collection("orders")
         .doc(widget.order.id)
-        .update({"status": value});
+        .update({
+      "status": value,
+    });
 
     setState(() {
       status = value;
@@ -37,7 +44,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 
   Future<void> callCustomer() async {
-    final uri = Uri(scheme: "tel", path: data['mobile']);
+    final uri = Uri(
+      scheme: "tel",
+      path: data['mobile'],
+    );
+
     await launchUrl(uri);
   }
 
@@ -49,6 +60,93 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     await launchUrl(
       uri,
       mode: LaunchMode.externalApplication,
+    );
+  }
+
+  Future<void> generateAndShareInvoice() async {
+    final List<CartItem> cartItems = [];
+
+    final List items = (data['items'] ?? []) as List;
+
+    for (final item in items) {
+      cartItems.add(
+        CartItem(
+          id: item['id'] ?? "",
+          name: item['name'] ?? "",
+          image: item['image'] ?? "",
+          price: (item['price'] as num).toDouble(),
+          retailPrice: (item['retailPrice'] as num).toDouble(),
+          wholesalePrice: (item['wholesalePrice'] as num).toDouble(),
+          minimumWholesaleQty: item['minimumWholesaleQty'] ?? 1,
+          quantity: item['quantity'] ?? 1,
+        ),
+      );
+    }
+
+    final File invoiceFile = await InvoiceService.generateInvoice(
+      invoiceNo: "INV-${widget.order.id.substring(0, 8)}",
+      customerName: data['customerName'] ?? "",
+      customerMobile: data['mobile'] ?? "",
+      customerAddress: data['address'] ?? "",
+      items: cartItems,
+      grandTotal: (data['totalAmount'] as num).toDouble(),
+    );
+
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (_) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Invoice Options",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(context);
+
+                    await InvoiceService.printInvoice(invoiceFile);
+                  },
+                  icon: const Icon(
+                    Icons.print,
+                  ),
+                  label: const Text(
+                    "Print Invoice",
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(context);
+
+                    await InvoiceService.shareInvoice(invoiceFile);
+                  },
+                  icon: const Icon(
+                    Icons.share,
+                  ),
+                  label: const Text(
+                    "Share Invoice",
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -106,14 +204,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             width: 50,
                             height: 50,
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.inventory_2,
+                              );
+                            },
                           )
                         : const Icon(Icons.inventory_2),
                 title: Text(item['name'] ?? ""),
                 subtitle: Text(
-                  "₹${item['price']} × ${item['quantity']}",
+                  "Rs. ${item['price']} × ${item['quantity']}",
                 ),
                 trailing: Text(
-                  "₹${item['total']}",
+                  "Rs. ${item['total']}",
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
@@ -158,6 +261,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           ),
           const SizedBox(height: 20),
           ElevatedButton.icon(
+            onPressed: generateAndShareInvoice,
+            icon: const Icon(Icons.receipt_long),
+            label: const Text(
+              "Generate Invoice",
+            ),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
             onPressed: callCustomer,
             icon: const Icon(Icons.call),
             label: const Text("Call Customer"),
@@ -174,7 +285,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               leading: const Icon(Icons.currency_rupee),
               title: const Text("Total Amount"),
               trailing: Text(
-                "₹${data['totalAmount']}",
+                "Rs. ${data['totalAmount']}",
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

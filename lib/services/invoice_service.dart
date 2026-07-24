@@ -40,17 +40,17 @@ class InvoiceService {
         margin: const pw.EdgeInsets.all(20),
         build: (context) {
           return [
-            ///==========================
-            /// HEADER
-            ///==========================
+            //==========================
+            // HEADER
+            //==========================
 
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 if (logo != null)
                   pw.Container(
-                    width: 70,
-                    height: 70,
+                    width: 75,
+                    height: 75,
                     child: pw.Image(logo),
                   ),
                 if (logo != null) pw.SizedBox(width: 15),
@@ -65,32 +65,71 @@ class InvoiceService {
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
+                      pw.SizedBox(height: 6),
+                      pw.Text(
+                        "E-44, Street No. 15",
+                        style: const pw.TextStyle(
+                          fontSize: 10,
+                        ),
+                      ),
+                      pw.Text(
+                        "Madhu Vihar, I.P. Extension",
+                        style: const pw.TextStyle(
+                          fontSize: 10,
+                        ),
+                      ),
+                      pw.Text(
+                        "Patparganj, Delhi - 110092",
+                        style: const pw.TextStyle(
+                          fontSize: 10,
+                        ),
+                      ),
                       pw.SizedBox(height: 5),
-                      pw.Text("Madhu Vihar, Delhi"),
-                      pw.Text("Phone : +91-XXXXXXXXXX"),
-                      pw.Text("Email : support@absspares.in"),
+                      pw.Text(
+                        "Phone : 8178478220",
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 pw.Container(
                   padding: const pw.EdgeInsets.all(10),
                   decoration: pw.BoxDecoration(
-                    border: pw.Border.all(),
+                    color: PdfColors.grey100,
+                    borderRadius: pw.BorderRadius.circular(6),
+                    border: pw.Border.all(
+                      color: PdfColors.amber700,
+                      width: 1.5,
+                    ),
                   ),
                   child: pw.Column(
                     children: [
                       pw.Text(
                         "INVOICE",
                         style: pw.TextStyle(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.amber800,
                         ),
                       ),
                       pw.SizedBox(height: 10),
-                      pw.Text("Invoice No"),
+                      pw.Text(
+                        "Invoice No",
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
                       pw.Text(invoiceNo),
-                      pw.SizedBox(height: 5),
-                      pw.Text("Date"),
+                      pw.SizedBox(height: 8),
+                      pw.Text(
+                        "Date",
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
                       pw.Text(
                         "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
                       ),
@@ -102,30 +141,43 @@ class InvoiceService {
 
             pw.SizedBox(height: 25),
 
-            ///==========================
-            /// CUSTOMER DETAILS
-            ///==========================
+            //==========================
+            // CUSTOMER DETAILS
+            //==========================
 
             pw.Container(
               width: double.infinity,
               padding: const pw.EdgeInsets.all(12),
               decoration: pw.BoxDecoration(
-                border: pw.Border.all(),
+                color: PdfColors.grey100,
+                borderRadius: pw.BorderRadius.circular(6),
+                border: pw.Border.all(
+                  color: PdfColors.grey500,
+                ),
               ),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(
-                    "Customer Details",
+                    "CUSTOMER DETAILS",
                     style: pw.TextStyle(
+                      fontSize: 15,
                       fontWeight: pw.FontWeight.bold,
-                      fontSize: 16,
+                      color: PdfColors.blue900,
                     ),
                   ),
                   pw.SizedBox(height: 10),
-                  pw.Text("Name : $customerName"),
-                  pw.Text("Mobile : $customerMobile"),
-                  pw.Text("Address :"),
+                  pw.Text(
+                    "Name : $customerName",
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Text(
+                    "Mobile : $customerMobile",
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Text(
+                    "Address :",
+                  ),
                   pw.Text(customerAddress),
                 ],
               ),
@@ -133,12 +185,14 @@ class InvoiceService {
 
             pw.SizedBox(height: 25),
 
-            ///==========================
-            /// PRODUCT TABLE
-            ///==========================
+            //==========================
+            // PRODUCT TABLE
+            //==========================
 
             pw.Table(
-              border: pw.TableBorder.all(),
+              border: pw.TableBorder.all(
+                color: PdfColors.grey600,
+              ),
               columnWidths: {
                 0: const pw.FlexColumnWidth(4),
                 1: const pw.FlexColumnWidth(1),
@@ -148,26 +202,44 @@ class InvoiceService {
               children: [
                 pw.TableRow(
                   decoration: const pw.BoxDecoration(
-                    color: PdfColors.grey300,
+                    color: PdfColors.amber200,
                   ),
                   children: [
-                    _cell("Product", true),
-                    _cell("Qty", true),
-                    _cell("Rate", true),
-                    _cell("Amount", true),
+                    _cell(
+                      "Product",
+                      true,
+                    ),
+                    _cell(
+                      "Qty",
+                      true,
+                    ),
+                    _cell(
+                      "Rate",
+                      true,
+                    ),
+                    _cell(
+                      "Amount",
+                      true,
+                    ),
                   ],
                 ),
                 ...items.map(
                   (item) => pw.TableRow(
                     children: [
-                      _cell(item.name, false),
-                      _cell(item.quantity.toString(), false),
                       _cell(
-                        "₹${item.price.toStringAsFixed(0)}",
+                        item.name,
                         false,
                       ),
                       _cell(
-                        "₹${item.total.toStringAsFixed(0)}",
+                        item.quantity.toString(),
+                        false,
+                      ),
+                      _cell(
+                        "Rs. ${item.price.toStringAsFixed(2)}",
+                        false,
+                      ),
+                      _cell(
+                        "Rs. ${item.total.toStringAsFixed(2)}",
                         false,
                       ),
                     ],
@@ -177,18 +249,22 @@ class InvoiceService {
             ),
 
             pw.SizedBox(height: 25),
-
-            ///==========================
-            /// TOTAL
-            ///==========================
+            //==========================
+            // GRAND TOTAL
+            //==========================
 
             pw.Align(
               alignment: pw.Alignment.centerRight,
               child: pw.Container(
-                width: 220,
-                padding: const pw.EdgeInsets.all(12),
+                width: 230,
+                padding: const pw.EdgeInsets.all(14),
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(),
+                  color: PdfColors.amber100,
+                  borderRadius: pw.BorderRadius.circular(8),
+                  border: pw.Border.all(
+                    color: PdfColors.amber700,
+                    width: 1.5,
+                  ),
                 ),
                 child: pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -196,15 +272,16 @@ class InvoiceService {
                     pw.Text(
                       "Grand Total",
                       style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
                         fontSize: 16,
+                        fontWeight: pw.FontWeight.bold,
                       ),
                     ),
                     pw.Text(
-                      "₹${grandTotal.toStringAsFixed(0)}",
+                      "Rs. ${grandTotal.toStringAsFixed(2)}",
                       style: pw.TextStyle(
+                        fontSize: 18,
                         fontWeight: pw.FontWeight.bold,
-                        fontSize: 16,
+                        color: PdfColors.green800,
                       ),
                     ),
                   ],
@@ -216,19 +293,48 @@ class InvoiceService {
 
             pw.Divider(),
 
+            pw.SizedBox(height: 15),
+
+            //==========================
+            // FOOTER
+            //==========================
+
             pw.Center(
               child: pw.Column(
                 children: [
                   pw.Text(
-                    "Thank You For Shopping!",
+                    "Thank You For Your Business!",
                     style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold,
                       fontSize: 18,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.amber800,
                     ),
                   ),
                   pw.SizedBox(height: 8),
-                  pw.Text("Visit Again"),
-                  pw.Text("Arihant Bike & Scooty Spare"),
+                  pw.Text(
+                    "We appreciate your trust and support.",
+                  ),
+                  pw.Text(
+                    "Visit Again",
+                  ),
+                  pw.SizedBox(height: 25),
+                  pw.Container(
+                    width: 180,
+                    child: pw.Divider(),
+                  ),
+                  pw.Text(
+                    "Authorized Signature",
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.SizedBox(height: 8),
+                  pw.Text(
+                    "Arihant Bike & Scooty Spare",
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -266,7 +372,7 @@ class InvoiceService {
         files: [
           XFile(file.path),
         ],
-        text: "Invoice",
+        text: "Invoice from Arihant Bike & Scooty Spare",
       ),
     );
   }
@@ -276,7 +382,10 @@ class InvoiceService {
     bool header,
   ) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.all(8),
+      padding: const pw.EdgeInsets.symmetric(
+        vertical: 8,
+        horizontal: 6,
+      ),
       child: pw.Text(
         text,
         textAlign: pw.TextAlign.center,

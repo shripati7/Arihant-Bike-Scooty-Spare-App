@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/order_model.dart';
 import '../providers/cart_provider.dart';
-import '../services/invoice_service.dart';
+
 import '../services/order_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -72,19 +72,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
 
     await orderService.placeOrder(order);
-
-    final invoiceFile = await InvoiceService.generateInvoice(
-      invoiceNo: "INV-${DateTime.now().millisecondsSinceEpoch}",
-      customerName: nameController.text.trim(),
-      customerMobile: mobileController.text.trim(),
-      customerAddress: addressController.text.trim(),
-      items: cartProvider.cartItems,
-      grandTotal: cartProvider.totalAmount,
-    );
-
-    await InvoiceService.shareInvoice(
-      invoiceFile,
-    );
 
     if (!mounted) return;
 
