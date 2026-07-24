@@ -66,15 +66,9 @@ class InvoiceService {
                         ),
                       ),
                       pw.SizedBox(height: 5),
-                      pw.Text(
-                        "Madhu Vihar, Delhi",
-                      ),
-                      pw.Text(
-                        "Phone : +91-XXXXXXXXXX",
-                      ),
-                      pw.Text(
-                        "Email : support@absspares.in",
-                      ),
+                      pw.Text("Madhu Vihar, Delhi"),
+                      pw.Text("Phone : +91-XXXXXXXXXX"),
+                      pw.Text("Email : support@absspares.in"),
                     ],
                   ),
                 ),
@@ -93,14 +87,10 @@ class InvoiceService {
                         ),
                       ),
                       pw.SizedBox(height: 10),
-                      pw.Text(
-                        "Invoice No",
-                      ),
+                      pw.Text("Invoice No"),
                       pw.Text(invoiceNo),
                       pw.SizedBox(height: 5),
-                      pw.Text(
-                        "Date",
-                      ),
+                      pw.Text("Date"),
                       pw.Text(
                         "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
                       ),
@@ -133,15 +123,9 @@ class InvoiceService {
                     ),
                   ),
                   pw.SizedBox(height: 10),
-                  pw.Text(
-                    "Name : $customerName",
-                  ),
-                  pw.Text(
-                    "Mobile : $customerMobile",
-                  ),
-                  pw.Text(
-                    "Address :",
-                  ),
+                  pw.Text("Name : $customerName"),
+                  pw.Text("Mobile : $customerMobile"),
+                  pw.Text("Address :"),
                   pw.Text(customerAddress),
                 ],
               ),
@@ -177,10 +161,7 @@ class InvoiceService {
                   (item) => pw.TableRow(
                     children: [
                       _cell(item.name, false),
-                      _cell(
-                        item.quantity.toString(),
-                        false,
-                      ),
+                      _cell(item.quantity.toString(), false),
                       _cell(
                         "₹${item.price.toStringAsFixed(0)}",
                         false,
@@ -209,26 +190,22 @@ class InvoiceService {
                 decoration: pw.BoxDecoration(
                   border: pw.Border.all(),
                 ),
-                child: pw.Column(
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text(
-                          "Grand Total",
-                          style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        pw.Text(
-                          "₹${grandTotal.toStringAsFixed(0)}",
-                          style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
+                    pw.Text(
+                      "Grand Total",
+                      style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    pw.Text(
+                      "₹${grandTotal.toStringAsFixed(0)}",
+                      style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ],
                 ),
@@ -250,12 +227,8 @@ class InvoiceService {
                     ),
                   ),
                   pw.SizedBox(height: 8),
-                  pw.Text(
-                    "Visit Again",
-                  ),
-                  pw.Text(
-                    "Arihant Bike & Scooty Spare",
-                  ),
+                  pw.Text("Visit Again"),
+                  pw.Text("Arihant Bike & Scooty Spare"),
                 ],
               ),
             ),
@@ -288,11 +261,13 @@ class InvoiceService {
   static Future<void> shareInvoice(
     File file,
   ) async {
-    await Share.shareXFiles(
-      [
-        XFile(file.path),
-      ],
-      text: "Invoice",
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [
+          XFile(file.path),
+        ],
+        text: "Invoice",
+      ),
     );
   }
 

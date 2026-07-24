@@ -120,10 +120,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
               ),
             );
-          }).toList(),
+          }),
           const SizedBox(height: 20),
           DropdownButtonFormField<String>(
-            value: status,
+            initialValue: status,
             decoration: const InputDecoration(
               labelText: "Order Status",
               border: OutlineInputBorder(),

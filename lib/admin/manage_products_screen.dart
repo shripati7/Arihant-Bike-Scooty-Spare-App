@@ -7,9 +7,11 @@ class ManageProductsScreen extends StatelessWidget {
   const ManageProductsScreen({super.key});
 
   Future<void> deleteProduct(BuildContext context, String id) async {
+    final messenger = ScaffoldMessenger.of(context);
+
     await FirebaseFirestore.instance.collection("products").doc(id).delete();
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    messenger.showSnackBar(
       const SnackBar(
         content: Text("Product Deleted"),
       ),
