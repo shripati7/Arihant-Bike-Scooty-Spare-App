@@ -5,6 +5,7 @@ import '../models/order_model.dart';
 import '../providers/cart_provider.dart';
 
 import '../services/order_service.dart';
+import '../utils/pricing_helper.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final double totalAmount;
@@ -179,11 +180,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 ),
                               ),
                               Text(
-                                "${item.quantity} × ₹${item.price.toStringAsFixed(0)}",
+                                "${item.quantity} × ₹${PricingHelper.format(item.price)}",
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                "₹${item.total.toStringAsFixed(0)}",
+                                "₹${PricingHelper.format(item.total)}",
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -204,7 +205,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                           ),
                           Text(
-                            "₹${cart.totalAmount.toStringAsFixed(0)}",
+                            "₹${PricingHelper.format(cart.totalAmount)}",
                             style: const TextStyle(
                               fontSize: 22,
                               color: Colors.green,

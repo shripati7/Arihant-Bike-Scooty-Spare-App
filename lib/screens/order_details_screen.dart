@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/cart_item.dart';
 import '../services/invoice_service.dart';
+import '../utils/pricing_helper.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final DocumentSnapshot order;
@@ -110,37 +111,23 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
+                const SizedBox(height: 20),
                 ElevatedButton.icon(
                   onPressed: () async {
                     Navigator.pop(context);
-
                     await InvoiceService.printInvoice(invoiceFile);
                   },
-                  icon: const Icon(
-                    Icons.print,
-                  ),
-                  label: const Text(
-                    "Print Invoice",
-                  ),
+                  icon: const Icon(Icons.print),
+                  label: const Text("Print Invoice"),
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
+                const SizedBox(height: 10),
                 ElevatedButton.icon(
                   onPressed: () async {
                     Navigator.pop(context);
-
                     await InvoiceService.shareInvoice(invoiceFile);
                   },
-                  icon: const Icon(
-                    Icons.share,
-                  ),
-                  label: const Text(
-                    "Share Invoice",
-                  ),
+                  icon: const Icon(Icons.share),
+                  label: const Text("Share Invoice"),
                 ),
               ],
             ),
@@ -205,18 +192,20 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             height: 50,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
-                              return const Icon(
-                                Icons.inventory_2,
-                              );
+                              return const Icon(Icons.inventory_2);
                             },
                           )
                         : const Icon(Icons.inventory_2),
                 title: Text(item['name'] ?? ""),
+
+                // ✅ Decimal fixed
                 subtitle: Text(
-                  "Rs. ${item['price']} × ${item['quantity']}",
+                  "${PricingHelper.format(item['price'])} × ${item['quantity']}",
                 ),
+
+                // ✅ Decimal fixed
                 trailing: Text(
-                  "Rs. ${item['total']}",
+                  PricingHelper.format(item['total']),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
@@ -263,9 +252,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           ElevatedButton.icon(
             onPressed: generateAndShareInvoice,
             icon: const Icon(Icons.receipt_long),
-            label: const Text(
-              "Generate Invoice",
-            ),
+            label: const Text("Generate Invoice"),
           ),
           const SizedBox(height: 10),
           ElevatedButton.icon(
@@ -284,8 +271,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             child: ListTile(
               leading: const Icon(Icons.currency_rupee),
               title: const Text("Total Amount"),
+
+              // ✅ Decimal fixed
               trailing: Text(
-                "Rs. ${data['totalAmount']}",
+                PricingHelper.format(data['totalAmount']),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

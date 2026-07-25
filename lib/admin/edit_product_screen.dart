@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditProductScreen extends StatefulWidget {
   final String id;
@@ -18,58 +22,149 @@ class EditProductScreen extends StatefulWidget {
 class _EditProductScreenState extends State<EditProductScreen> {
   late TextEditingController nameController;
   late TextEditingController priceController;
-  late TextEditingController imageController;
   late TextEditingController categoryController;
   late TextEditingController stockController;
 
+  final picker = ImagePicker();
+
+  File? selectedImage;
+
   bool loading = false;
+
+  String imageUrl = "";
 
   @override
   void initState() {
     super.initState();
 
-    nameController = TextEditingController(text: widget.product["name"] ?? "");
+    nameController = TextEditingController(
+      text: widget.product["name"] ?? "",
+    );
 
     priceController = TextEditingController(
       text: widget.product["price"].toString(),
     );
 
-    imageController =
-        TextEditingController(text: widget.product["image"] ?? "");
-
-    categoryController =
-        TextEditingController(text: widget.product["category"] ?? "");
+    categoryController = TextEditingController(
+      text: widget.product["category"] ?? "",
+    );
 
     stockController = TextEditingController(
       text: widget.product["stock"].toString(),
     );
+
+    imageUrl = widget.product["image"] ?? "";
+  }
+
+  Future<void> pickImage() async {
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (image == null) return;
+
+    setState(() {
+      selectedImage = File(image.path);
+    });
+  }
+
+  Future<String> uploadImage() async {
+    if (selectedImage == null) {
+      return imageUrl;
+    }
+
+    final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+
+    final ref =
+        FirebaseStorage.instance.ref().child("products").child(fileName);
+
+    await ref.putFile(selectedImage!);
+
+    return await ref.getDownloadURL();
+  }
+
+  Future<void> deleteOldImage() async {
+    if (selectedImage == null) return;
+
+    if (imageUrl.isEmpty) return;
+
+    try {
+      await FirebaseStorage.instance.refFromURL(imageUrl).delete();
+    } catch (_) {}
   }
 
   Future<void> updateProduct() async {
-    setState(() => loading = true);
+    if (nameController.text.trim().isEmpty ||
+        priceController.text.trim().isEmpty ||
+        categoryController.text.trim().isEmpty ||
+        stockController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please fill all fields"),
+        ),
+      );
+      return;
+    }
 
-    await FirebaseFirestore.instance
-        .collection("products")
-        .doc(widget.id)
-        .update({
-      "name": nameController.text.trim(),
-      "price": double.parse(priceController.text),
-      "image": imageController.text.trim(),
-      "category": categoryController.text.trim(),
-      "stock": int.parse(stockController.text),
+    setState(() {
+      loading = true;
     });
 
-    setState(() => loading = false);
+    try {
+      // Delete old image if user selected a new one
+      await deleteOldImage();
 
-    if (!mounted) return;
+      // Upload new image (or keep old image)
+      final newImageUrl = await uploadImage();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Product Updated"),
-      ),
-    );
+      // Update Firestore
+      await FirebaseFirestore.instance
+          .collection("products")
+          .doc(widget.id)
+          .update({
+        "name": nameController.text.trim(),
+        "price": double.parse(priceController.text.trim()),
+        "category": categoryController.text.trim(),
+        "stock": int.parse(stockController.text.trim()),
+        "image": newImageUrl,
+      });
 
-    Navigator.pop(context);
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.green,
+          content: Text("Product Updated Successfully"),
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(e.toString()),
+        ),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    priceController.dispose();
+    categoryController.dispose();
+    stockController.dispose();
+    super.dispose();
   }
 
   @override
@@ -81,11 +176,50 @@ class _EditProductScreenState extends State<EditProductScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Center(
+              child: GestureDetector(
+                onTap: loading ? null : pickImage,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: selectedImage != null
+                      ? Image.file(
+                          selectedImage!,
+                          width: 150,
+                          height: 150,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.network(
+                          imageUrl,
+                          width: 150,
+                          height: 150,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 150,
+                            height: 150,
+                            color: Colors.grey.shade200,
+                            child: const Icon(
+                              Icons.image,
+                              size: 60,
+                            ),
+                          ),
+                        ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: loading ? null : pickImage,
+              icon: const Icon(Icons.photo_library),
+              label: const Text("Change Image"),
+            ),
+            const SizedBox(height: 20),
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
                 labelText: "Product Name",
+                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 15),
@@ -94,13 +228,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: "Price",
-              ),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: imageController,
-              decoration: const InputDecoration(
-                labelText: "Image URL",
+                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 15),
@@ -108,6 +236,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
               controller: categoryController,
               decoration: const InputDecoration(
                 labelText: "Category",
+                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 15),
@@ -116,17 +245,22 @@ class _EditProductScreenState extends State<EditProductScreen> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: "Stock",
+                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 30),
             SizedBox(
-              width: double.infinity,
               height: 50,
               child: ElevatedButton(
                 onPressed: loading ? null : updateProduct,
                 child: loading
-                    ? const CircularProgressIndicator()
-                    : const Text("Update Product"),
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                    : const Text(
+                        "Update Product",
+                        style: TextStyle(fontSize: 16),
+                      ),
               ),
             ),
           ],

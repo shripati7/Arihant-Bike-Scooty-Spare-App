@@ -84,7 +84,7 @@ class ProductCard extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                "₹${sellingPrice.toStringAsFixed(0)}",
+                PricingHelper.format(sellingPrice),
                 style: const TextStyle(
                   color: Colors.green,
                   fontWeight: FontWeight.bold,
@@ -93,7 +93,7 @@ class ProductCard extends StatelessWidget {
               ),
               if (product.wholesalePrice < product.price)
                 Text(
-                  "Wholesale ₹${product.wholesalePrice.toStringAsFixed(0)} (Min ${product.minimumWholesaleQty})",
+                  "Wholesale ${PricingHelper.format(product.wholesalePrice)} (Min ${product.minimumWholesaleQty})",
                   style: const TextStyle(
                     color: Colors.blue,
                     fontSize: 12,

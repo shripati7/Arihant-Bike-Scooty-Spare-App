@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
@@ -14,7 +15,11 @@ class ImageUploadService {
         imageQuality: 80,
       );
     } catch (e) {
-      print("Gallery Error: $e");
+      log(
+        "Gallery Error",
+        error: e,
+        name: "ImageUploadService",
+      );
       return null;
     }
   }
@@ -26,7 +31,11 @@ class ImageUploadService {
         imageQuality: 80,
       );
     } catch (e) {
-      print("Camera Error: $e");
+      log(
+        "Camera Error",
+        error: e,
+        name: "ImageUploadService",
+      );
       return null;
     }
   }
@@ -36,20 +45,24 @@ class ImageUploadService {
     required String folderName,
   }) async {
     try {
-      File file = File(imageFile.path);
+      final File file = File(imageFile.path);
 
-      String fileName =
+      final String fileName =
           "${DateTime.now().millisecondsSinceEpoch}_${imageFile.name}";
 
-      Reference ref = _storage.ref().child(folderName).child(fileName);
+      final Reference ref = _storage.ref().child(folderName).child(fileName);
 
-      UploadTask uploadTask = ref.putFile(file);
+      final UploadTask uploadTask = ref.putFile(file);
 
-      TaskSnapshot snapshot = await uploadTask;
+      final TaskSnapshot snapshot = await uploadTask;
 
       return await snapshot.ref.getDownloadURL();
     } catch (e) {
-      print("Image Upload Error: $e");
+      log(
+        "Image Upload Error",
+        error: e,
+        name: "ImageUploadService",
+      );
       return null;
     }
   }

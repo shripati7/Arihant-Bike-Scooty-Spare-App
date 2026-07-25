@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'my_orders_screen.dart';
-import 'my_orders_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -10,6 +9,8 @@ class ProfileScreen extends StatelessWidget {
   static const String phoneNumber = "8178478220";
 
   Future<void> _makePhoneCall(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+
     final Uri phoneUri = Uri(
       scheme: 'tel',
       path: phoneNumber,
@@ -18,7 +19,7 @@ class ProfileScreen extends StatelessWidget {
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(
           content: Text("Unable to open phone dialer"),
         ),
@@ -27,6 +28,8 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Future<void> _openWhatsApp(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+
     final Uri whatsappUri = Uri.parse(
       "https://wa.me/91$phoneNumber?text=Hello%20Arihant%20Bike%20%26%20Scooty%20Spare",
     );
@@ -37,7 +40,7 @@ class ProfileScreen extends StatelessWidget {
         mode: LaunchMode.externalApplication,
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(
           content: Text("WhatsApp is not installed."),
         ),
@@ -115,7 +118,9 @@ class ProfileScreen extends StatelessWidget {
           const Center(
             child: Text(
               "Welcome to your profile",
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(
+                color: Colors.grey,
+              ),
             ),
           ),
           const SizedBox(height: 30),

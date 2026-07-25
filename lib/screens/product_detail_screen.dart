@@ -96,7 +96,7 @@ class ProductDetailScreen extends StatelessWidget {
               ),
             ),
             Text(
-              "₹${sellingPrice.toStringAsFixed(0)}",
+              PricingHelper.format(sellingPrice),
               style: const TextStyle(
                 fontSize: 30,
                 color: Colors.green,
@@ -113,7 +113,7 @@ class ProductDetailScreen extends StatelessWidget {
                     color: Colors.blue,
                   ),
                   title: Text(
-                    "Wholesale Price : ₹${product.wholesalePrice.toStringAsFixed(0)}",
+                    "Wholesale Price : ${PricingHelper.format(product.wholesalePrice)}",
                   ),
                   subtitle: Text(
                     "Minimum Order : ${product.minimumWholesaleQty}",

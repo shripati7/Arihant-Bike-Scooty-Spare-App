@@ -41,17 +41,21 @@ class Product {
       image: data["image"] ?? "",
 
       // Retail Price
-      price: (data["price"] ?? 0).toDouble(),
+      price: (data["price"] as num?)?.toDouble() ?? 0.0,
 
-      // Agar wholesalePrice Firestore me nahi hai,
-      // to retail price use hogi.
-      wholesalePrice: (data["wholesalePrice"] ?? data["price"] ?? 0).toDouble(),
+      // Wholesale Price
+      wholesalePrice: (data["wholesalePrice"] as num?)?.toDouble() ??
+          (data["price"] as num?)?.toDouble() ??
+          0.0,
 
-      // Agar field nahi hai to default 1
+      // Minimum quantity for wholesale
       minimumWholesaleQty: data["minimumWholesaleQty"] ?? 1,
 
       category: data["category"] ?? "",
-      rating: (data["rating"] ?? 5).toDouble(),
+
+      // Default rating
+      rating: (data["rating"] as num?)?.toDouble() ?? 5.0,
+
       stock: data["stock"] ?? 0,
     );
   }

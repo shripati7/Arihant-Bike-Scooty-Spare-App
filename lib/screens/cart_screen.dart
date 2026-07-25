@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/cart_provider.dart';
+import '../utils/pricing_helper.dart';
 import 'checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
@@ -56,7 +57,7 @@ class CartScreen extends StatelessWidget {
                                   children: [
                                     const SizedBox(height: 4),
                                     Text(
-                                      "₹${item.price.toStringAsFixed(0)} × ${item.quantity}",
+                                      "₹${PricingHelper.format(item.price)} × ${item.quantity}",
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -152,7 +153,7 @@ class CartScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        "Grand Total : ₹${cart.totalAmount.toStringAsFixed(0)}",
+                        "Grand Total : ₹${PricingHelper.format(cart.totalAmount)}",
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
