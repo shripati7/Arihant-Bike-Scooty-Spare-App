@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthService {
   AuthService._();
@@ -26,41 +27,72 @@ class AuthService {
     required Function() onCodeSent,
     required Function(String error) onError,
   }) async {
-    await _auth.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        await _auth.signInWithCredential(credential);
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        onError(e.message ?? "OTP Verification Failed");
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        _verificationId = verificationId;
-        onCodeSent();
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        _verificationId = verificationId;
-      },
-    );
+    try {
+      debugPrint("========== SEND OTP ==========");
+      debugPrint("Phone Number: $phoneNumber");
+
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          debugPrint("Auto Verification Completed");
+
+          try {
+            await _auth.signInWithCredential(credential);
+            debugPrint("Auto Login Success");
+          } catch (e) {
+            debugPrint("Auto Login Error: $e");
+          }
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          debugPrint("========== FIREBASE ERROR ==========");
+          debugPrint("Code    : ${e.code}");
+          debugPrint("Message : ${e.message}");
+          debugPrint("===================================");
+
+          onError("${e.code}\n${e.message}");
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          debugPrint("OTP Sent Successfully");
+
+          _verificationId = verificationId;
+
+          onCodeSent();
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          debugPrint("Auto Retrieval Timeout");
+
+          _verificationId = verificationId;
+        },
+        timeout: const Duration(seconds: 60),
+      );
+    } catch (e) {
+      debugPrint("Unexpected Error: $e");
+      onError(e.toString());
+    }
   }
 
   //==========================
   // Verify OTP
   //==========================
 
-  Future<UserCredential?> verifyOtp(
-    String otp,
-  ) async {
+  Future<UserCredential?> verifyOtp(String otp) async {
     try {
       final credential = PhoneAuthProvider.credential(
         verificationId: _verificationId,
         smsCode: otp,
       );
 
-      return await _auth.signInWithCredential(
-        credential,
-      );
-    } on FirebaseAuthException {
+      final result = await _auth.signInWithCredential(credential);
+
+      debugPrint("OTP Verification Success");
+
+      return result;
+    } on FirebaseAuthException catch (e) {
+      debugPrint("========== VERIFY OTP ERROR ==========");
+      debugPrint("Code    : ${e.code}");
+      debugPrint("Message : ${e.message}");
+      debugPrint("======================================");
+
       return null;
     }
   }
@@ -71,5 +103,6 @@ class AuthService {
 
   Future<void> logout() async {
     await _auth.signOut();
+    debugPrint("User Logged Out");
   }
 }

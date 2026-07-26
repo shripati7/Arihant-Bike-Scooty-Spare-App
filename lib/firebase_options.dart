@@ -56,7 +56,6 @@ class DefaultFirebaseOptions {
     projectId: 'arihant-bike-scooty-spare',
     storageBucket: 'arihant-bike-scooty-spare.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCDHMi6-_2blD_YL-m07uvy0YNyr2BZh70',
     appId: '1:1073271165345:ios:5f4ccb46a5db0850cdfbe0',
@@ -65,7 +64,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'arihant-bike-scooty-spare.firebasestorage.app',
     iosBundleId: 'com.example.spareApp',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyCDHMi6-_2blD_YL-m07uvy0YNyr2BZh70',
     appId: '1:1073271165345:ios:5f4ccb46a5db0850cdfbe0',
