@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
+import 'user_service.dart';
+
 class AuthService {
   AuthService._();
 
@@ -38,6 +40,10 @@ class AuthService {
 
           try {
             await _auth.signInWithCredential(credential);
+
+            // Save user in Firestore (first login only)
+            await UserService.instance.saveUser();
+
             debugPrint("Auto Login Success");
           } catch (e) {
             debugPrint("Auto Login Error: $e");
@@ -84,6 +90,9 @@ class AuthService {
 
       final result = await _auth.signInWithCredential(credential);
 
+      // Save user in Firestore (first login only)
+      await UserService.instance.saveUser();
+
       debugPrint("OTP Verification Success");
 
       return result;
@@ -103,6 +112,7 @@ class AuthService {
 
   Future<void> logout() async {
     await _auth.signOut();
+
     debugPrint("User Logged Out");
   }
 }
