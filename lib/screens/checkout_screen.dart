@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../models/order_model.dart';
 import '../providers/cart_provider.dart';
-
 import '../services/order_service.dart';
 import '../utils/pricing_helper.dart';
 
@@ -28,7 +27,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   final TextEditingController addressController = TextEditingController();
 
-  final OrderService orderService = OrderService();
+  final OrderService orderService = OrderService.instance;
 
   @override
   void dispose() {
@@ -62,13 +61,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         "isWholesale": item.quantity >= item.minimumWholesaleQty,
       };
     }).toList();
-
     final order = OrderModel(
+      id: null,
+
+      // OrderService.placeOrder() इसे
+      // current Firebase user's UID से save करेगा.
+      userId: '',
+
       customerName: nameController.text.trim(),
       mobile: mobileController.text.trim(),
       address: addressController.text.trim(),
+
       totalAmount: cartProvider.totalAmount,
+
       orderDate: DateTime.now().toIso8601String(),
+
+      status: 'Pending',
+
       items: items,
     );
 

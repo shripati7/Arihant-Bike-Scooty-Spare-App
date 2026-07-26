@@ -1,199 +1,252 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import 'my_orders_screen.dart';
+import '../models/user_model.dart';
+import '../services/auth_service.dart';
+import '../services/user_service.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
-  static const String phoneNumber = "8178478220";
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
 
-  Future<void> _makePhoneCall(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
+class _ProfileScreenState extends State<ProfileScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-    final Uri phoneUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
 
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
-    } else {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text("Unable to open phone dialer"),
-        ),
-      );
+  bool isLoading = true;
+
+  UserModel? currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    loadUser();
+  }
+
+  Future<void> loadUser() async {
+    try {
+      final user = await UserService.instance.getCurrentUser();
+
+      if (user != null) {
+        currentUser = user;
+
+        nameController.text = user.name;
+        phoneController.text = user.phone;
+        emailController.text = user.email;
+        addressController.text = user.address;
+      } else {
+        final firebaseUser = AuthService.instance.currentUser;
+
+        phoneController.text = firebaseUser?.phoneNumber ?? '';
+      }
+    } catch (e) {
+      debugPrint('Load User Error: $e');
     }
+
+    if (!mounted) return;
+
+    setState(() {
+      isLoading = false;
+    });
   }
 
-  Future<void> _openWhatsApp(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
+  Future<void> saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
 
-    final Uri whatsappUri = Uri.parse(
-      "https://wa.me/91$phoneNumber?text=Hello%20Arihant%20Bike%20%26%20Scooty%20Spare",
+    if (currentUser == null) return;
+
+    final updatedUser = UserModel(
+      uid: currentUser!.uid,
+      name: nameController.text.trim(),
+      phone: currentUser!.phone,
+      email: emailController.text.trim(),
+      address: addressController.text.trim(),
+      createdAt: currentUser!.createdAt,
     );
 
-    if (await canLaunchUrl(whatsappUri)) {
-      await launchUrl(
-        whatsappUri,
-        mode: LaunchMode.externalApplication,
-      );
-    } else {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text("WhatsApp is not installed."),
-        ),
-      );
-    }
-  }
+    await UserService.instance.updateUser(updatedUser);
 
-  void _showAbout(BuildContext context) {
-    showAboutDialog(
-      context: context,
-      applicationName: "Arihant Bike & Scooty Spare",
-      applicationVersion: "1.0.0",
-      applicationLegalese: "© 2026 Arihant Bike & Scooty Spare",
-      children: const [
-        SizedBox(height: 10),
-        Text(
-          "Your trusted bike & scooty spare parts store.\n\n"
-          "Address:\n"
-          "E-44, Street No.15,\n"
-          "Madhu Vihar, I.P. Extension,\n"
-          "Patparganj, Delhi - 110092",
-        ),
-      ],
-    );
-  }
+    currentUser = updatedUser;
 
-  void _showPrivacy(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Privacy Policy"),
-        content: const Text(
-          "Your information is used only for processing orders. "
-          "We do not share your personal information with third parties.",
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Profile Updated Successfully',
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          ),
-        ],
       ),
     );
   }
 
   @override
+  void dispose() {
+    nameController.dispose();
+    phoneController.dispose();
+    emailController.dispose();
+    addressController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Profile"),
+        title: const Text('My Profile'),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const SizedBox(height: 20),
-          const CircleAvatar(
-            radius: 50,
-            child: Icon(
-              Icons.person,
-              size: 55,
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Center(
-            child: Text(
-              "Arihant Bike & Scooty Spare",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            const SizedBox(height: 10),
+            const CircleAvatar(
+              radius: 45,
+              child: Icon(
+                Icons.person,
+                size: 45,
               ),
             ),
-          ),
-          const SizedBox(height: 5),
-          const Center(
-            child: Text(
-              "Welcome to your profile",
-              style: TextStyle(
-                color: Colors.grey,
+            const SizedBox(height: 24),
+            TextFormField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                prefixIcon: Icon(Icons.person),
+                border: OutlineInputBorder(),
               ),
-            ),
-          ),
-          const SizedBox(height: 30),
-          Card(
-            elevation: 3,
-            child: ListTile(
-              leading: const Icon(Icons.shopping_bag),
-              title: const Text("My Orders"),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const MyOrdersScreen(),
-                  ),
-                );
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter your name';
+                }
+                return null;
               },
             ),
-          ),
-          const SizedBox(height: 10),
-          Card(
-            elevation: 3,
-            child: ListTile(
-              leading: const Icon(Icons.call),
-              title: const Text("Call Shop"),
-              trailing: const Icon(Icons.phone),
-              onTap: () => _makePhoneCall(context),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Card(
-            elevation: 3,
-            child: ListTile(
-              leading: const Icon(Icons.chat),
-              title: const Text("WhatsApp"),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () => _openWhatsApp(context),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Card(
-            elevation: 3,
-            child: ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text("About App"),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () => _showAbout(context),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Card(
-            elevation: 3,
-            child: ListTile(
-              leading: const Icon(Icons.privacy_tip),
-              title: const Text("Privacy Policy"),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () => _showPrivacy(context),
-            ),
-          ),
-          const SizedBox(height: 35),
-          const Divider(),
-          const SizedBox(height: 10),
-          const Center(
-            child: Text(
-              "Version 1.0.0",
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: phoneController,
+              enabled: false,
+              decoration: const InputDecoration(
+                labelText: 'Mobile Number',
+                prefixIcon: Icon(Icons.phone),
+                border: OutlineInputBorder(),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-        ],
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.email),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: addressController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Address',
+                prefixIcon: Icon(Icons.location_on),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: saveProfile,
+                icon: const Icon(Icons.save),
+                label: const Text(
+                  'Save Profile',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.shopping_bag),
+                title: const Text('My Orders'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'My Orders screen coming soon',
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
+            Card(
+              child: ListTile(
+                leading: const Icon(
+                  Icons.logout,
+                  color: Colors.red,
+                ),
+                title: const Text('Logout'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () async {
+                  final shouldLogout = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Logout'),
+                      content: const Text(
+                        'Are you sure you want to logout?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context, false);
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context, true);
+                          },
+                          child: const Text('Logout'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (shouldLogout != true) return;
+
+                  await AuthService.instance.logout();
+
+                  if (!mounted) return;
+
+                  // AuthWrapper auth state change detect karke
+                  // automatically Login Screen par redirect karega.
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
