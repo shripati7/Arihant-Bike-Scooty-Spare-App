@@ -22,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirestoreService firestoreService = FirestoreService();
 
   int currentIndex = 0;
+
   String searchText = "";
   String selectedCategory = "All";
 
@@ -56,27 +57,233 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Arihant Bike & Scooty Spare"),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.admin_panel_settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const AdminLoginScreen(),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: TextField(
+                          onChanged: (value) {
+                            setState(() {
+                              searchText = value;
+                            });
+                          },
+                          decoration: const InputDecoration(
+                            hintText: "Search Spare Parts",
+                            prefixIcon: Icon(Icons.search),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      height: 52,
+                      width: 52,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.admin_panel_settings,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AdminLoginScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            },
+              ),
+              const SizedBox(height: 18),
+              const BannerSlider(),
+              const SizedBox(height: 22),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  "Shop by Category",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: CategoryFilter(
+                  categories: categories,
+                  selectedCategory: selectedCategory,
+                  onCategorySelected: (category) {
+                    setState(() {
+                      selectedCategory = category;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  "Popular Categories",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 110,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: topCategories.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(18),
+                      onTap: () {
+                        setState(() {
+                          selectedCategory = topCategories[index];
+                        });
+                      },
+                      child: CategoryCard(
+                        title: topCategories[index],
+                        icon: categoryIcons[index],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 22),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Featured Products",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          selectedCategory = "All";
+                        });
+                      },
+                      child: const Text("View All"),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              StreamBuilder<List<Product>>(
+                stream: firestoreService.getProducts(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Center(
+                        child: Text("Something went wrong"),
+                      ),
+                    );
+                  }
+
+                  final allProducts = snapshot.data ?? [];
+
+                  final filteredProducts = allProducts.where((product) {
+                    final matchesCategory = selectedCategory == "All" ||
+                        product.category == selectedCategory;
+
+                    final matchesSearch = product.name
+                        .toLowerCase()
+                        .contains(searchText.toLowerCase());
+
+                    return matchesCategory && matchesSearch;
+                  }).toList();
+
+                  if (filteredProducts.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Center(
+                        child: Text(
+                          "No Products Found",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    itemCount: filteredProducts.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.66,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemBuilder: (context, index) {
+                      return ProductCard(
+                        product: filteredProducts[index],
+                      );
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
-        ],
+        ),
       ),
       bottomNavigationBar: BottomNav(
         currentIndex: currentIndex,
         onTap: (index) {
-          if (index == 2) {
+          if (index == currentIndex) return;
+
+          if (index == 1) {
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -86,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return;
           }
 
-          if (index == 3) {
+          if (index == 2) {
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -100,154 +307,6 @@ class _HomeScreenState extends State<HomeScreen> {
             currentIndex = index;
           });
         },
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: TextField(
-                onChanged: (value) {
-                  setState(() {
-                    searchText = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: "Search spare parts...",
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            const BannerSlider(),
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: Text(
-                "Filter By Category",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            CategoryFilter(
-              categories: categories,
-              selectedCategory: selectedCategory,
-              onCategorySelected: (category) {
-                setState(() {
-                  selectedCategory = category;
-                });
-              },
-            ),
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: Text(
-                "Categories",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 110,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: topCategories.length,
-                itemBuilder: (context, index) {
-                  return CategoryCard(
-                    title: topCategories[index],
-                    icon: categoryIcons[index],
-                  );
-                },
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: Text(
-                "Featured Products",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            StreamBuilder<List<Product>>(
-              stream: firestoreService.getProducts(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(30),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(30),
-                      child: Text("Something went wrong"),
-                    ),
-                  );
-                }
-
-                final allProducts = snapshot.data ?? [];
-
-                final filteredProducts = allProducts.where((product) {
-                  final searchMatch = product.name
-                          .toLowerCase()
-                          .contains(searchText.toLowerCase()) ||
-                      product.category
-                          .toLowerCase()
-                          .contains(searchText.toLowerCase());
-
-                  final categoryMatch = selectedCategory == "All"
-                      ? true
-                      : product.category == selectedCategory;
-
-                  return searchMatch && categoryMatch;
-                }).toList();
-
-                if (filteredProducts.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(30),
-                    child: Center(
-                      child: Text(
-                        "No Products Found",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  );
-                }
-
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(10),
-                  itemCount: filteredProducts.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.72,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                  ),
-                  itemBuilder: (context, index) {
-                    return ProductCard(
-                      product: filteredProducts[index],
-                    );
-                  },
-                );
-              },
-            ),
-          ],
-        ),
       ),
     );
   }

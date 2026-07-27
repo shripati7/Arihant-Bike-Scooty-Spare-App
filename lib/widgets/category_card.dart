@@ -17,13 +17,25 @@ class CategoryCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.red.shade100,
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            height: 64,
+            width: 64,
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withValues(alpha: 0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
             child: Icon(
               icon,
               color: Colors.red,
-              size: 30,
+              size: 32,
             ),
           ),
           const SizedBox(height: 8),
@@ -31,8 +43,9 @@ class CategoryCard extends StatelessWidget {
             title,
             textAlign: TextAlign.center,
             maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),

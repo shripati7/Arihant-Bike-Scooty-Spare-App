@@ -1,0 +1,20 @@
+* [33m01c583b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Added user-wise order isolation and upgraded order architecture
+* [33mf6de04d[m Added User Management System and fixed analyzer issues
+* [33m4aafc92[m Fixed Firebase Phone Authentication SMS region policy and OTP login
+* [33ma5435e8[m Added Firebase Phone Authentication setup and configuration
+* [33m2260330[m Added Firebase Authentication dependency
+* [33m016f77c[m Analyzer clean - no issues found
+* [33mff006c8[m Completed Add Product screen and prepared app without Firebase Storage
+* [33me350a3d[m Improved My Orders UI and prepared app for OTP authentication
+* [33mce73714[m Added Profile screen with contact, WhatsApp, about and privacy features
+* [33m765de60[m Added admin invoice generation and order details improvements
+* [33ma11eaa9[m Cleaned analyzer warnings and updated SharePlus API
+* [33m7c4cc6c[m Added PDF invoice generation, wholesale pricing, and checkout improvements
+* [33m9d04971[m Integrated pricing engine with product and cart
+* [33mda6ffcd[m Added dual pricing support for products
+* [33m90e5a53[m Completed Order Details v2 with products, status update and customer actions
+* [33md28297f[m Added order management system and checkout improvements
+* [33m639278a[m Completed Firebase Admin Panel and Firestore product integration
+* [33m707ef21[m Added product image support and updated app UI
+* [33m508dd8f[m Firebase and Firestore setup completed
+* [33m4258ea7[m Added WhatsApp checkout integration
