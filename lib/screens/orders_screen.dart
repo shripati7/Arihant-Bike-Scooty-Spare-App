@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../models/order_model.dart';
 import 'order_details_screen.dart';
 
 class OrdersScreen extends StatelessWidget {
@@ -16,7 +17,7 @@ class OrdersScreen extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('orders')
-            .orderBy('createdAt', descending: true)
+            .orderBy('orderDate', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -40,12 +41,19 @@ class OrdersScreen extends StatelessWidget {
             );
           }
 
-          final orders = snapshot.data!.docs;
+          final orders = snapshot.data!.docs
+              .map(
+                (doc) => OrderModel.fromMap(
+                  doc.data() as Map<String, dynamic>,
+                  doc.id,
+                ),
+              )
+              .toList();
 
           return ListView.builder(
             itemCount: orders.length,
             itemBuilder: (context, index) {
-              final order = orders[index].data() as Map<String, dynamic>;
+              final order = orders[index];
 
               return Card(
                 elevation: 3,
@@ -58,7 +66,7 @@ class OrdersScreen extends StatelessWidget {
                     child: Icon(Icons.shopping_cart),
                   ),
                   title: Text(
-                    order['customerName'] ?? '',
+                    order.customerName,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
@@ -67,9 +75,11 @@ class OrdersScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 5),
-                      Text("📞 ${order['mobile']}"),
-                      Text("💰 ₹${order['totalAmount']}"),
-                      Text("📍 ${order['address']}"),
+                      Text("📞 ${order.mobile}"),
+                      Text(
+                        "💰 ₹${order.totalAmount.toStringAsFixed(2)}",
+                      ),
+                      Text("📍 ${order.address}"),
                       const SizedBox(height: 5),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -81,7 +91,7 @@ class OrdersScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          order['status'] ?? 'Pending',
+                          order.status,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                           ),
@@ -89,13 +99,15 @@ class OrdersScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  trailing: const Icon(Icons.arrow_forward_ios),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => OrderDetailsScreen(
-                          order: orders[index],
+                          order: order,
                         ),
                       ),
                     );

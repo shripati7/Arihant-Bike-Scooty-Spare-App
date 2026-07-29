@@ -1,15 +1,10 @@
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../models/cart_item.dart';
-import '../services/invoice_service.dart';
-import '../utils/pricing_helper.dart';
+import '../models/order_model.dart';
+import '../services/order_service.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
-  final DocumentSnapshot order;
+  final OrderModel order;
 
   const OrderDetailsScreen({
     super.key,
@@ -21,269 +16,347 @@ class OrderDetailsScreen extends StatefulWidget {
 }
 
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
-  late Map<String, dynamic> data;
-  late String status;
+  final OrderService _orderService = OrderService.instance;
+
+  late String selectedStatus;
+
+  final List<String> statusList = [
+    "Pending",
+    "Processing",
+    "Delivered",
+    "Cancelled",
+  ];
 
   @override
   void initState() {
     super.initState();
-    data = widget.order.data() as Map<String, dynamic>;
-    status = data['status'] ?? "Pending";
+    selectedStatus = widget.order.status;
   }
 
   Future<void> updateStatus(String value) async {
-    await FirebaseFirestore.instance
-        .collection("orders")
-        .doc(widget.order.id)
-        .update({
-      "status": value,
-    });
+    if (widget.order.id == null) return;
 
-    setState(() {
-      status = value;
-    });
-  }
-
-  Future<void> callCustomer() async {
-    final uri = Uri(
-      scheme: "tel",
-      path: data['mobile'],
-    );
-
-    await launchUrl(uri);
-  }
-
-  Future<void> whatsappCustomer() async {
-    final uri = Uri.parse(
-      "https://wa.me/91${data['mobile']}",
-    );
-
-    await launchUrl(
-      uri,
-      mode: LaunchMode.externalApplication,
-    );
-  }
-
-  Future<void> generateAndShareInvoice() async {
-    final List<CartItem> cartItems = [];
-
-    final List items = (data['items'] ?? []) as List;
-
-    for (final item in items) {
-      cartItems.add(
-        CartItem(
-          id: item['id'] ?? "",
-          name: item['name'] ?? "",
-          image: item['image'] ?? "",
-          price: (item['price'] as num).toDouble(),
-          retailPrice: (item['retailPrice'] as num).toDouble(),
-          wholesalePrice: (item['wholesalePrice'] as num).toDouble(),
-          minimumWholesaleQty: item['minimumWholesaleQty'] ?? 1,
-          quantity: item['quantity'] ?? 1,
-        ),
-      );
-    }
-
-    final File invoiceFile = await InvoiceService.generateInvoice(
-      invoiceNo: "INV-${widget.order.id.substring(0, 8)}",
-      customerName: data['customerName'] ?? "",
-      customerMobile: data['mobile'] ?? "",
-      customerAddress: data['address'] ?? "",
-      items: cartItems,
-      grandTotal: (data['totalAmount'] as num).toDouble(),
+    await _orderService.updateOrderStatus(
+      orderId: widget.order.id!,
+      status: value,
     );
 
     if (!mounted) return;
 
-    showModalBottomSheet(
+    setState(() {
+      selectedStatus = value;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Order status updated to $value",
+        ),
+      ),
+    );
+  }
+
+  Future<void> deleteOrder() async {
+    if (widget.order.id == null) return;
+
+    final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "Invoice Options",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await InvoiceService.printInvoice(invoiceFile);
-                  },
-                  icon: const Icon(Icons.print),
-                  label: const Text("Print Invoice"),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await InvoiceService.shareInvoice(invoiceFile);
-                  },
-                  icon: const Icon(Icons.share),
-                  label: const Text("Share Invoice"),
-                ),
-              ],
-            ),
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Delete Order"),
+          content: const Text(
+            "Are you sure you want to delete this order?",
           ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text("Delete"),
+            ),
+          ],
         );
       },
+    );
+
+    if (confirm != true) return;
+
+    await _orderService.deleteOrder(widget.order.id!);
+
+    if (!mounted) return;
+
+    Navigator.pop(context, true);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          "Order Deleted Successfully",
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final List items = (data['items'] ?? []) as List;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Order Details"),
         centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text("Customer Name"),
-              subtitle: Text(data['customerName'] ?? ""),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.phone),
-              title: const Text("Mobile"),
-              subtitle: Text(data['mobile'] ?? ""),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.location_on),
-              title: const Text("Address"),
-              subtitle: Text(data['address'] ?? ""),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            "Ordered Products",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 10),
-          ...items.map((item) {
-            return Card(
-              child: ListTile(
-                leading:
-                    item['image'] != null && item['image'].toString().isNotEmpty
-                        ? Image.network(
-                            item['image'],
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.inventory_2);
-                            },
-                          )
-                        : const Icon(Icons.inventory_2),
-                title: Text(item['name'] ?? ""),
-
-                // ✅ Decimal fixed
-                subtitle: Text(
-                  "${PricingHelper.format(item['price'])} × ${item['quantity']}",
-                ),
-
-                // ✅ Decimal fixed
-                trailing: Text(
-                  PricingHelper.format(item['total']),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            );
-          }),
-          const SizedBox(height: 20),
-          DropdownButtonFormField<String>(
-            initialValue: status,
-            decoration: const InputDecoration(
-              labelText: "Order Status",
-              border: OutlineInputBorder(),
-            ),
-            items: const [
-              DropdownMenuItem(
-                value: "Pending",
-                child: Text("Pending"),
-              ),
-              DropdownMenuItem(
-                value: "Confirmed",
-                child: Text("Confirmed"),
-              ),
-              DropdownMenuItem(
-                value: "Shipped",
-                child: Text("Shipped"),
-              ),
-              DropdownMenuItem(
-                value: "Delivered",
-                child: Text("Delivered"),
-              ),
-              DropdownMenuItem(
-                value: "Cancelled",
-                child: Text("Cancelled"),
-              ),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                updateStatus(value);
-              }
-            },
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: generateAndShareInvoice,
-            icon: const Icon(Icons.receipt_long),
-            label: const Text("Generate Invoice"),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton.icon(
-            onPressed: callCustomer,
-            icon: const Icon(Icons.call),
-            label: const Text("Call Customer"),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton.icon(
-            onPressed: whatsappCustomer,
-            icon: const Icon(Icons.chat),
-            label: const Text("WhatsApp Customer"),
-          ),
-          const SizedBox(height: 10),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.currency_rupee),
-              title: const Text("Total Amount"),
-
-              // ✅ Decimal fixed
-              trailing: Text(
-                PricingHelper.format(data['totalAmount']),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
-              ),
-            ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: deleteOrder,
           ),
         ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Customer Information",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const CircleAvatar(
+                        child: Icon(Icons.person),
+                      ),
+                      title: Text(
+                        widget.order.customerName,
+                      ),
+                      subtitle: const Text(
+                        "Customer Name",
+                      ),
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.phone),
+                      title: Text(
+                        widget.order.mobile,
+                      ),
+                      subtitle: const Text(
+                        "Mobile Number",
+                      ),
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.location_on,
+                      ),
+                      title: Text(
+                        widget.order.address,
+                      ),
+                      subtitle: const Text(
+                        "Address",
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Order Information",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.receipt_long,
+                      ),
+                      title: Text(
+                        widget.order.id ?? "-",
+                      ),
+                      subtitle: const Text("Order ID"),
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.calendar_today,
+                      ),
+                      title: Text(
+                        widget.order.orderDate,
+                      ),
+                      subtitle: const Text("Order Date"),
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.local_shipping,
+                      ),
+                      title: DropdownButton<String>(
+                        value: selectedStatus,
+                        isExpanded: true,
+                        underline: const SizedBox(),
+                        items: statusList
+                            .map(
+                              (status) => DropdownMenuItem<String>(
+                                value: status,
+                                child: Text(status),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            updateStatus(value);
+                          }
+                        },
+                      ),
+                      subtitle: const Text("Status"),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Ordered Products",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ...widget.order.items.map((item) {
+                      final quantity = item["quantity"] ?? 0;
+
+                      final price = (item["price"] ?? 0).toDouble();
+
+                      final total = (item["total"] ?? 0).toDouble();
+
+                      final wholesale = item["isWholesale"] ?? false;
+
+                      return Card(
+                        margin: const EdgeInsets.only(
+                          bottom: 12,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item["name"] ?? "",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 8,
+                              ),
+                              Text(
+                                "Quantity : $quantity",
+                              ),
+                              Text(
+                                "Price : ₹${price.toStringAsFixed(2)}",
+                              ),
+                              Text(
+                                "Total : ₹${total.toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (wholesale)
+                                const Padding(
+                                  padding: EdgeInsets.only(
+                                    top: 8,
+                                  ),
+                                  child: Chip(
+                                    label: Text(
+                                      "Wholesale",
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              color: Colors.green.shade50,
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Grand Total",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      "₹${widget.order.totalAmount.toStringAsFixed(2)}",
+                      style: const TextStyle(
+                        fontSize: 22,
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart';
+import 'my_orders_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -78,9 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'Profile Updated Successfully',
-        ),
+        content: Text('Profile Updated Successfully'),
       ),
     );
   }
@@ -190,11 +189,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 title: const Text('My Orders'),
                 trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'My Orders screen coming soon',
-                      ),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MyOrdersScreen(),
                     ),
                   );
                 },
@@ -240,8 +238,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   if (!mounted) return;
 
-                  // AuthWrapper auth state change detect karke
-                  // automatically Login Screen par redirect karega.
+                  // AuthWrapper automatically redirects to Login Screen.
                 },
               ),
             ),

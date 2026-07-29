@@ -13,29 +13,45 @@ class OrderService {
 
   CollectionReference<Map<String, dynamic>> get _orders =>
       _firestore.collection('orders');
+
   Future<void> placeOrder(OrderModel order) async {
     final user = _auth.currentUser;
 
-    if (user == null) {
-      throw Exception('User is not logged in.');
-    }
-
     final newOrder = OrderModel(
-      id: order.id,
-      userId: user.uid,
+      id: null,
+      userId: user?.uid ?? '',
       customerName: order.customerName,
       mobile: order.mobile,
       address: order.address,
       totalAmount: order.totalAmount,
-      orderDate: order.orderDate,
-      status: order.status,
+      orderDate: DateTime.now().toIso8601String(),
+      status: "Pending",
       items: order.items,
     );
 
     await _orders.add(newOrder.toMap());
   }
 
+  // ==========================
+  // ADMIN : All Orders
+  // ==========================
   Future<List<OrderModel>> getOrders() async {
+    final snapshot = await _orders.orderBy('orderDate', descending: true).get();
+
+    return snapshot.docs
+        .map(
+          (doc) => OrderModel.fromMap(
+            doc.data(),
+            doc.id,
+          ),
+        )
+        .toList();
+  }
+
+  // ==========================
+  // CUSTOMER : My Orders
+  // ==========================
+  Future<List<OrderModel>> getMyOrders() async {
     final user = _auth.currentUser;
 
     if (user == null) {
@@ -58,48 +74,26 @@ class OrderService {
   }
 
   Future<OrderModel?> getOrderById(String orderId) async {
-    final user = _auth.currentUser;
-
-    if (user == null) {
-      return null;
-    }
-
     final doc = await _orders.doc(orderId).get();
 
-    if (!doc.exists) {
-      return null;
-    }
+    if (!doc.exists) return null;
 
-    final order = OrderModel.fromMap(doc.data()!, doc.id);
+    return OrderModel.fromMap(
+      doc.data()!,
+      doc.id,
+    );
+  }
 
-    // Security: only allow access to the current user's own order.
-    if (order.userId != user.uid) {
-      return null;
-    }
-
-    return order;
+  Future<void> updateOrderStatus({
+    required String orderId,
+    required String status,
+  }) async {
+    await _orders.doc(orderId).update({
+      'status': status,
+    });
   }
 
   Future<void> deleteOrder(String orderId) async {
-    final user = _auth.currentUser;
-
-    if (user == null) {
-      throw Exception('User is not logged in.');
-    }
-
-    final doc = await _orders.doc(orderId).get();
-
-    if (!doc.exists) {
-      return;
-    }
-
-    final order = OrderModel.fromMap(doc.data()!, doc.id);
-
-    // Security: only allow deleting the current user's own order.
-    if (order.userId != user.uid) {
-      throw Exception('Unauthorized operation.');
-    }
-
     await _orders.doc(orderId).delete();
   }
 }
