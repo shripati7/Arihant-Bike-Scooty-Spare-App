@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/order_model.dart';
+import '../services/invoice_service.dart';
 import '../services/order_service.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
@@ -18,11 +21,14 @@ class OrderDetailsScreen extends StatefulWidget {
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   final OrderService _orderService = OrderService.instance;
 
+  final InvoiceService _invoiceService = InvoiceService();
+
   late String selectedStatus;
 
   final List<String> statusList = [
     "Pending",
     "Processing",
+    "Shipped",
     "Delivered",
     "Cancelled",
   ];
@@ -33,7 +39,67 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     selectedStatus = widget.order.status;
   }
 
-  Future<void> updateStatus(String value) async {
+  String formatOrderDate(String date) {
+    try {
+      return DateFormat(
+        "dd MMM yyyy • hh:mm a",
+      ).format(DateTime.parse(date));
+    } catch (_) {
+      return date;
+    }
+  }
+
+  Color getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return Colors.orange;
+
+      case "processing":
+        return Colors.blue;
+
+      case "shipped":
+        return Colors.purple;
+
+      case "delivered":
+        return Colors.green;
+
+      case "cancelled":
+        return Colors.red;
+
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Future<void> printInvoice() async {
+    await _invoiceService.generateAndShareInvoice(
+      widget.order,
+    );
+  }
+
+  Future<void> callCustomer() async {
+    final uri = Uri(
+      scheme: "tel",
+      path: widget.order.mobile,
+    );
+
+    await launchUrl(uri);
+  }
+
+  Future<void> whatsappCustomer() async {
+    final uri = Uri.parse(
+      "https://wa.me/91${widget.order.mobile}",
+    );
+
+    await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+  }
+
+  Future<void> updateStatus(
+    String value,
+  ) async {
     if (widget.order.id == null) return;
 
     await _orderService.updateOrderStatus(
@@ -63,22 +129,34 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Delete Order"),
+          title: const Text(
+            "Delete Order",
+          ),
           content: const Text(
             "Are you sure you want to delete this order?",
           ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context, false);
+                Navigator.pop(
+                  context,
+                  false,
+                );
               },
-              child: const Text("Cancel"),
+              child: const Text(
+                "Cancel",
+              ),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context, true);
+                Navigator.pop(
+                  context,
+                  true,
+                );
               },
-              child: const Text("Delete"),
+              child: const Text(
+                "Delete",
+              ),
             ),
           ],
         );
@@ -87,11 +165,16 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
     if (confirm != true) return;
 
-    await _orderService.deleteOrder(widget.order.id!);
+    await _orderService.deleteOrder(
+      widget.order.id!,
+    );
 
     if (!mounted) return;
 
-    Navigator.pop(context, true);
+    Navigator.pop(
+      context,
+      true,
+    );
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -106,11 +189,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Order Details"),
+        title: const Text(
+          "Order Details",
+        ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete),
+            icon: const Icon(
+              Icons.delete,
+            ),
             onPressed: deleteOrder,
           ),
         ],
@@ -119,6 +206,47 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // ===== Action Buttons =====
+
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: printInvoice,
+                        icon: const Icon(Icons.print),
+                        label: const Text("Invoice"),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: callCustomer,
+                        icon: const Icon(Icons.call),
+                        label: const Text("Call"),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: whatsappCustomer,
+                        icon: const Icon(Icons.chat),
+                        label: const Text("WhatsApp"),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
             Card(
               elevation: 3,
               shape: RoundedRectangleBorder(
@@ -175,7 +303,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 16),
+
             Card(
               elevation: 3,
               shape: RoundedRectangleBorder(
@@ -202,7 +332,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       title: Text(
                         widget.order.id ?? "-",
                       ),
-                      subtitle: const Text("Order ID"),
+                      subtitle: const Text(
+                        "Order ID",
+                      ),
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
@@ -210,9 +342,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         Icons.calendar_today,
                       ),
                       title: Text(
-                        widget.order.orderDate,
+                        formatOrderDate(
+                          widget.order.orderDate,
+                        ),
                       ),
-                      subtitle: const Text("Order Date"),
+                      subtitle: const Text(
+                        "Order Date",
+                      ),
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
@@ -225,7 +361,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         underline: const SizedBox(),
                         items: statusList
                             .map(
-                              (status) => DropdownMenuItem<String>(
+                              (status) => DropdownMenuItem(
                                 value: status,
                                 child: Text(status),
                               ),
@@ -237,12 +373,55 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           }
                         },
                       ),
-                      subtitle: const Text("Status"),
+                      subtitle: const Text(
+                        "Status",
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: getStatusColor(
+                          selectedStatus,
+                        ).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: getStatusColor(
+                            selectedStatus,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.circle,
+                            size: 12,
+                            color: getStatusColor(
+                              selectedStatus,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            selectedStatus,
+                            style: TextStyle(
+                              color: getStatusColor(
+                                selectedStatus,
+                              ),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
+
             const SizedBox(height: 16),
             Card(
               elevation: 3,
@@ -265,16 +444,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     ...widget.order.items.map((item) {
                       final quantity = item["quantity"] ?? 0;
 
-                      final price = (item["price"] ?? 0).toDouble();
+                      final price = (item["price"] is num)
+                          ? (item["price"] as num).toDouble()
+                          : double.tryParse(item["price"].toString()) ?? 0.0;
 
-                      final total = (item["total"] ?? 0).toDouble();
+                      final total = (item["total"] is num)
+                          ? (item["total"] as num).toDouble()
+                          : double.tryParse(item["total"].toString()) ?? 0.0;
 
                       final wholesale = item["isWholesale"] ?? false;
 
                       return Card(
-                        margin: const EdgeInsets.only(
-                          bottom: 12,
-                        ),
+                        margin: const EdgeInsets.only(bottom: 12),
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Column(
@@ -287,15 +468,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              Text(
-                                "Quantity : $quantity",
-                              ),
-                              Text(
-                                "Price : ₹${price.toStringAsFixed(2)}",
-                              ),
+                              const SizedBox(height: 8),
+                              Text("Quantity : $quantity"),
+                              Text("Price : ₹${price.toStringAsFixed(2)}"),
                               Text(
                                 "Total : ₹${total.toStringAsFixed(2)}",
                                 style: const TextStyle(
@@ -305,13 +480,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               ),
                               if (wholesale)
                                 const Padding(
-                                  padding: EdgeInsets.only(
-                                    top: 8,
-                                  ),
+                                  padding: EdgeInsets.only(top: 8),
                                   child: Chip(
-                                    label: Text(
-                                      "Wholesale",
-                                    ),
+                                    label: Text("Wholesale"),
                                   ),
                                 ),
                             ],
@@ -319,41 +490,39 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         ),
                       );
                     }),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              color: Colors.green.shade50,
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Grand Total",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      "₹${widget.order.totalAmount.toStringAsFixed(2)}",
-                      style: const TextStyle(
-                        fontSize: 22,
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
+                    const SizedBox(height: 10),
+                    Card(
+                      color: Colors.green.shade50,
+                      elevation: 0,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Grand Total",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "₹${widget.order.totalAmount.toStringAsFixed(2)}",
+                              style: const TextStyle(
+                                fontSize: 22,
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+
             const SizedBox(height: 20),
           ],
         ),

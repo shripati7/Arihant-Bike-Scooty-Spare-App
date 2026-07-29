@@ -37,6 +37,9 @@ dependencies:
   path_provider: ^2.1.5
   share_plus: ^11.1.0
 
+  # Date Formatting
+  intl: ^0.20.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

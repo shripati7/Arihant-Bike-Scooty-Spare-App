@@ -75,7 +75,6 @@ class ManageProductsScreen extends StatelessWidget {
       ),
     );
 
-    // Fix for use_build_context_synchronously
     if (!context.mounted) return;
 
     if (confirm == true) {
@@ -120,6 +119,10 @@ class ManageProductsScreen extends StatelessWidget {
               final doc = products[index];
               final data = doc.data() as Map<String, dynamic>;
 
+              final price = (data["price"] is num)
+                  ? (data["price"] as num).toDouble()
+                  : double.tryParse(data["price"].toString()) ?? 0.0;
+
               return Card(
                 elevation: 3,
                 margin: const EdgeInsets.symmetric(
@@ -146,7 +149,11 @@ class ManageProductsScreen extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    "₹${data["price"]}",
+                    "₹${price.toStringAsFixed(2)}",
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,

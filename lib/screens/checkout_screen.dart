@@ -63,22 +63,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }).toList();
     final order = OrderModel(
       id: null,
-
-      // OrderService.placeOrder() इसे
-      // current Firebase user's UID से save करेगा.
-      userId: '',
-
       customerName: nameController.text.trim(),
       mobile: mobileController.text.trim(),
       address: addressController.text.trim(),
-
-      totalAmount: cartProvider.totalAmount,
-
       orderDate: DateTime.now().toIso8601String(),
-
-      status: 'Pending',
-
       items: items,
+      totalAmount: cartProvider.totalAmount,
+      status: 'Pending',
     );
 
     await orderService.placeOrder(order);

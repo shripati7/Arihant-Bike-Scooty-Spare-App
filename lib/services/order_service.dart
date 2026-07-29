@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/order_model.dart';
 
@@ -9,17 +8,13 @@ class OrderService {
   static final OrderService instance = OrderService._();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   CollectionReference<Map<String, dynamic>> get _orders =>
       _firestore.collection('orders');
 
   Future<void> placeOrder(OrderModel order) async {
-    final user = _auth.currentUser;
-
     final newOrder = OrderModel(
       id: null,
-      userId: user?.uid ?? '',
       customerName: order.customerName,
       mobile: order.mobile,
       address: order.address,
@@ -32,9 +27,6 @@ class OrderService {
     await _orders.add(newOrder.toMap());
   }
 
-  // ==========================
-  // ADMIN : All Orders
-  // ==========================
   Future<List<OrderModel>> getOrders() async {
     final snapshot = await _orders.orderBy('orderDate', descending: true).get();
 
@@ -48,29 +40,8 @@ class OrderService {
         .toList();
   }
 
-  // ==========================
-  // CUSTOMER : My Orders
-  // ==========================
   Future<List<OrderModel>> getMyOrders() async {
-    final user = _auth.currentUser;
-
-    if (user == null) {
-      return [];
-    }
-
-    final snapshot = await _orders
-        .where('userId', isEqualTo: user.uid)
-        .orderBy('orderDate', descending: true)
-        .get();
-
-    return snapshot.docs
-        .map(
-          (doc) => OrderModel.fromMap(
-            doc.data(),
-            doc.id,
-          ),
-        )
-        .toList();
+    return getOrders();
   }
 
   Future<OrderModel?> getOrderById(String orderId) async {

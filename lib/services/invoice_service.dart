@@ -7,334 +7,275 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../models/cart_item.dart';
+import '../models/order_model.dart';
 
 class InvoiceService {
-  static Future<File> generateInvoice({
-    required String invoiceNo,
-    required String customerName,
-    required String customerMobile,
-    required String customerAddress,
-    required List<CartItem> items,
-    required double grandTotal,
-  }) async {
-    final pdf = pw.Document();
+  static const String shopName = "ARIHANT BIKE & SCOOTY SPARE";
+  static const String phone = "8178478220";
+  static const String website = "www.absspares.in";
+  static const String address = "Madhu Vihar, I.P. Extension, Delhi";
 
-    pw.MemoryImage? logo;
-
+  Future<pw.MemoryImage?> _loadLogo() async {
     try {
-      final logoBytes = await rootBundle.load(
-        'assets/images/logo.png',
+      final data = await rootBundle.load(
+        "assets/images/logo.png",
       );
 
-      logo = pw.MemoryImage(
-        logoBytes.buffer.asUint8List(),
+      return pw.MemoryImage(
+        data.buffer.asUint8List(),
       );
     } catch (_) {
-      logo = null;
+      return null;
     }
+  }
+
+  String invoiceNumber(OrderModel order) {
+    if (order.id == null || order.id!.isEmpty) {
+      return "ABS-${DateTime.now().millisecondsSinceEpoch}";
+    }
+
+    final id = order.id!;
+
+    return id.length > 6
+        ? "ABS-${id.substring(0, 6).toUpperCase()}"
+        : "ABS-${id.toUpperCase()}";
+  }
+
+  Future<void> generateAndShareInvoice(
+    OrderModel order,
+  ) async {
+    final pdf = pw.Document();
+
+    final logo = await _loadLogo();
 
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(20),
+        pageTheme: pw.PageTheme(
+          margin: const pw.EdgeInsets.all(20),
+        ),
         build: (context) {
           return [
-            //==========================
-            // HEADER
-            //==========================
-
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                if (logo != null)
-                  pw.Container(
-                    width: 75,
-                    height: 75,
-                    child: pw.Image(logo),
-                  ),
-                if (logo != null) pw.SizedBox(width: 15),
-                pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text(
-                        "ARIHANT BIKE & SCOOTY SPARE",
-                        style: pw.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
-                      pw.SizedBox(height: 6),
-                      pw.Text(
-                        "E-44, Street No. 15",
-                        style: const pw.TextStyle(
-                          fontSize: 10,
-                        ),
-                      ),
-                      pw.Text(
-                        "Madhu Vihar, I.P. Extension",
-                        style: const pw.TextStyle(
-                          fontSize: 10,
-                        ),
-                      ),
-                      pw.Text(
-                        "Patparganj, Delhi - 110092",
-                        style: const pw.TextStyle(
-                          fontSize: 10,
-                        ),
-                      ),
-                      pw.SizedBox(height: 5),
-                      pw.Text(
-                        "Phone : 8178478220",
-                        style: pw.TextStyle(
-                          fontWeight: pw.FontWeight.bold,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                pw.Container(
-                  padding: const pw.EdgeInsets.all(10),
-                  decoration: pw.BoxDecoration(
-                    color: PdfColors.grey100,
-                    borderRadius: pw.BorderRadius.circular(6),
-                    border: pw.Border.all(
-                      color: PdfColors.amber700,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: pw.Column(
-                    children: [
-                      pw.Text(
-                        "INVOICE",
-                        style: pw.TextStyle(
-                          fontSize: 20,
-                          fontWeight: pw.FontWeight.bold,
-                          color: PdfColors.amber800,
-                        ),
-                      ),
-                      pw.SizedBox(height: 10),
-                      pw.Text(
-                        "Invoice No",
-                        style: pw.TextStyle(
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
-                      pw.Text(invoiceNo),
-                      pw.SizedBox(height: 8),
-                      pw.Text(
-                        "Date",
-                        style: pw.TextStyle(
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
-                      pw.Text(
-                        "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            pw.SizedBox(height: 25),
-
-            //==========================
-            // CUSTOMER DETAILS
-            //==========================
-
             pw.Container(
-              width: double.infinity,
               padding: const pw.EdgeInsets.all(12),
               decoration: pw.BoxDecoration(
-                color: PdfColors.grey100,
-                borderRadius: pw.BorderRadius.circular(6),
+                color: PdfColors.red700,
+                borderRadius: pw.BorderRadius.circular(8),
+              ),
+              child: pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
+                  if (logo != null)
+                    pw.Container(
+                      width: 55,
+                      height: 55,
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.white,
+                        borderRadius: pw.BorderRadius.circular(8),
+                      ),
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Image(logo),
+                    ),
+                  if (logo != null) pw.SizedBox(width: 12),
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          shopName,
+                          style: pw.TextStyle(
+                            color: PdfColors.white,
+                            fontSize: 18,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          address,
+                          style: const pw.TextStyle(
+                            color: PdfColors.white,
+                            fontSize: 10,
+                          ),
+                        ),
+                        pw.Text(
+                          "Mobile : $phone",
+                          style: const pw.TextStyle(
+                            color: PdfColors.white,
+                            fontSize: 10,
+                          ),
+                        ),
+                        pw.Text(
+                          website,
+                          style: const pw.TextStyle(
+                            color: PdfColors.white,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 20),
+            pw.Container(
+              padding: const pw.EdgeInsets.all(12),
+              decoration: pw.BoxDecoration(
                 border: pw.Border.all(
-                  color: PdfColors.grey500,
+                  color: PdfColors.grey400,
                 ),
+                borderRadius: pw.BorderRadius.circular(8),
               ),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(
-                    "CUSTOMER DETAILS",
+                    "INVOICE",
                     style: pw.TextStyle(
-                      fontSize: 15,
+                      fontSize: 18,
                       fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.blue900,
                     ),
                   ),
                   pw.SizedBox(height: 10),
-                  pw.Text(
-                    "Name : $customerName",
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text(
+                        "Invoice No : ${invoiceNumber(order)}",
+                      ),
+                      pw.Text(
+                        "Date : ${order.orderDate}",
+                      ),
+                    ],
                   ),
-                  pw.SizedBox(height: 4),
+                  pw.SizedBox(height: 15),
                   pw.Text(
-                    "Mobile : $customerMobile",
+                    "Customer Details",
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
-                  pw.SizedBox(height: 4),
+                  pw.SizedBox(height: 8),
                   pw.Text(
-                    "Address :",
+                    "Name : ${order.customerName}",
                   ),
-                  pw.Text(customerAddress),
+                  pw.Text(
+                    "Mobile : ${order.mobile}",
+                  ),
+                  pw.Text(
+                    "Address : ${order.address}",
+                  ),
                 ],
               ),
             ),
-
-            pw.SizedBox(height: 25),
-
-            //==========================
-            // PRODUCT TABLE
-            //==========================
-
+            pw.SizedBox(height: 20),
             pw.Table(
               border: pw.TableBorder.all(
-                color: PdfColors.grey600,
+                color: PdfColors.grey500,
               ),
               columnWidths: {
-                0: const pw.FlexColumnWidth(4),
-                1: const pw.FlexColumnWidth(1),
-                2: const pw.FlexColumnWidth(2),
-                3: const pw.FlexColumnWidth(2),
+                0: const pw.FixedColumnWidth(35),
+                1: const pw.FlexColumnWidth(),
+                2: const pw.FixedColumnWidth(45),
+                3: const pw.FixedColumnWidth(65),
+                4: const pw.FixedColumnWidth(70),
               },
               children: [
                 pw.TableRow(
                   decoration: const pw.BoxDecoration(
-                    color: PdfColors.amber200,
+                    color: PdfColors.red100,
                   ),
                   children: [
-                    _cell(
-                      "Product",
-                      true,
-                    ),
-                    _cell(
-                      "Qty",
-                      true,
-                    ),
-                    _cell(
-                      "Rate",
-                      true,
-                    ),
-                    _cell(
-                      "Amount",
-                      true,
-                    ),
+                    _cell("S.No.", true),
+                    _cell("Product", true),
+                    _cell("Qty", true),
+                    _cell("Rate", true),
+                    _cell("Total", true),
                   ],
                 ),
-                ...items.map(
-                  (item) => pw.TableRow(
-                    children: [
-                      _cell(
-                        item.name,
-                        false,
-                      ),
-                      _cell(
-                        item.quantity.toString(),
-                        false,
-                      ),
-                      _cell(
-                        "Rs. ${item.price.toStringAsFixed(2)}",
-                        false,
-                      ),
-                      _cell(
-                        "Rs. ${item.total.toStringAsFixed(2)}",
-                        false,
-                      ),
-                    ],
-                  ),
+                ...List.generate(
+                  order.items.length,
+                  (index) {
+                    final item = order.items[index];
+
+                    final qty = item["quantity"] ?? 0;
+
+                    final price = (item["price"] ?? 0).toDouble();
+
+                    final total = (item["total"] ?? 0).toDouble();
+
+                    return pw.TableRow(
+                      children: [
+                        _cell("${index + 1}", false),
+                        _cell(
+                          item["name"] ?? "",
+                          false,
+                        ),
+                        _cell("$qty", false),
+                        _cell(
+                          "₹${price.toStringAsFixed(2)}",
+                          false,
+                        ),
+                        _cell(
+                          "₹${total.toStringAsFixed(2)}",
+                          false,
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),
-
-            pw.SizedBox(height: 25),
-            //==========================
-            // GRAND TOTAL
-            //==========================
-
+            pw.SizedBox(height: 20),
             pw.Align(
               alignment: pw.Alignment.centerRight,
               child: pw.Container(
-                width: 230,
-                padding: const pw.EdgeInsets.all(14),
+                width: 220,
+                padding: const pw.EdgeInsets.all(10),
                 decoration: pw.BoxDecoration(
-                  color: PdfColors.amber100,
-                  borderRadius: pw.BorderRadius.circular(8),
-                  border: pw.Border.all(
-                    color: PdfColors.amber700,
-                    width: 1.5,
-                  ),
+                  color: PdfColors.green100,
+                  borderRadius: pw.BorderRadius.circular(6),
+                  border: pw.Border.all(color: PdfColors.green),
                 ),
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      "Grand Total",
+                      "Total Items : ${order.items.length}",
                       style: pw.TextStyle(
-                        fontSize: 16,
                         fontWeight: pw.FontWeight.bold,
                       ),
                     ),
+                    pw.SizedBox(height: 6),
                     pw.Text(
-                      "Rs. ${grandTotal.toStringAsFixed(2)}",
+                      "Grand Total : ₹${order.totalAmount.toStringAsFixed(2)}",
                       style: pw.TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.green800,
+                        color: PdfColors.green900,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-
-            pw.SizedBox(height: 40),
-
+            pw.SizedBox(height: 30),
             pw.Divider(),
-
-            pw.SizedBox(height: 15),
-
-            //==========================
-            // FOOTER
-            //==========================
-
             pw.Center(
               child: pw.Column(
                 children: [
                   pw.Text(
-                    "Thank You For Your Business!",
+                    "Thank You For Your Purchase!",
                     style: pw.TextStyle(
-                      fontSize: 18,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.amber800,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    "We appreciate your trust and support.",
-                  ),
-                  pw.Text(
-                    "Visit Again",
-                  ),
-                  pw.SizedBox(height: 25),
-                  pw.Container(
-                    width: 180,
-                    child: pw.Divider(),
-                  ),
-                  pw.Text(
-                    "Authorized Signature",
-                    style: pw.TextStyle(
+                      fontSize: 16,
                       fontWeight: pw.FontWeight.bold,
                     ),
                   ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    "Arihant Bike & Scooty Spare",
-                    style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
+                  pw.SizedBox(height: 6),
+                  pw.Text("Visit Again"),
+                  pw.Text(shopName),
+                  pw.Text("Mobile : $phone"),
+                  pw.Text(website),
                 ],
               ),
             ),
@@ -343,55 +284,37 @@ class InvoiceService {
       ),
     );
 
-    final directory = await getApplicationDocumentsDirectory();
-
+    final directory = await getTemporaryDirectory();
     final file = File(
-      "${directory.path}/$invoiceNo.pdf",
+      "${directory.path}/Invoice_${invoiceNumber(order)}.pdf",
     );
 
-    await file.writeAsBytes(
-      await pdf.save(),
-    );
+    await file.writeAsBytes(await pdf.save());
 
-    return file;
-  }
-
-  static Future<void> printInvoice(
-    File file,
-  ) async {
     await Printing.layoutPdf(
-      onLayout: (format) async => file.readAsBytes(),
+      onLayout: (format) async => pdf.save(),
     );
-  }
 
-  static Future<void> shareInvoice(
-    File file,
-  ) async {
     await SharePlus.instance.share(
       ShareParams(
-        files: [
-          XFile(file.path),
-        ],
-        text: "Invoice from Arihant Bike & Scooty Spare",
+        files: [XFile(file.path)],
+        text: "Invoice - ${invoiceNumber(order)}",
       ),
     );
   }
 
-  static pw.Widget _cell(
+  pw.Widget _cell(
     String text,
-    bool header,
+    bool heading,
   ) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(
-        vertical: 8,
-        horizontal: 6,
-      ),
+      padding: const pw.EdgeInsets.all(6),
       child: pw.Text(
         text,
         textAlign: pw.TextAlign.center,
         style: pw.TextStyle(
-          fontSize: 11,
-          fontWeight: header ? pw.FontWeight.bold : pw.FontWeight.normal,
+          fontSize: heading ? 11 : 10,
+          fontWeight: heading ? pw.FontWeight.bold : pw.FontWeight.normal,
         ),
       ),
     );

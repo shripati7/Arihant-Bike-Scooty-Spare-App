@@ -1,44 +1,23 @@
 class OrderModel {
   final String? id;
-
-  /// Firebase User UID
-  final String userId;
-
   final String customerName;
   final String mobile;
   final String address;
-
-  final double totalAmount;
-
   final String orderDate;
-
-  final String status;
-
   final List<Map<String, dynamic>> items;
+  final double totalAmount;
+  final String status;
 
   OrderModel({
     this.id,
-    required this.userId,
     required this.customerName,
     required this.mobile,
     required this.address,
-    required this.totalAmount,
     required this.orderDate,
     required this.items,
-    this.status = 'Pending',
+    required this.totalAmount,
+    this.status = "Pending",
   });
-  Map<String, dynamic> toMap() {
-    return {
-      'userId': userId,
-      'customerName': customerName,
-      'mobile': mobile,
-      'address': address,
-      'totalAmount': totalAmount,
-      'orderDate': orderDate,
-      'status': status,
-      'items': items,
-    };
-  }
 
   factory OrderModel.fromMap(
     Map<String, dynamic> map,
@@ -46,16 +25,48 @@ class OrderModel {
   ) {
     return OrderModel(
       id: documentId,
-      userId: map['userId'] ?? '',
-      customerName: map['customerName'] ?? '',
-      mobile: map['mobile'] ?? '',
-      address: map['address'] ?? '',
-      totalAmount: (map['totalAmount'] ?? 0).toDouble(),
-      orderDate: map['orderDate'] ?? '',
-      status: map['status'] ?? 'Pending',
+      customerName: map["customerName"] ?? "",
+      mobile: map["mobile"] ?? "",
+      address: map["address"] ?? "",
+      orderDate: map["orderDate"] ?? "",
       items: List<Map<String, dynamic>>.from(
-        map['items'] ?? [],
+        map["items"] ?? [],
       ),
+      totalAmount: (map["totalAmount"] ?? 0).toDouble(),
+      status: map["status"] ?? "Pending",
+    );
+  }
+  Map<String, dynamic> toMap() {
+    return {
+      "customerName": customerName,
+      "mobile": mobile,
+      "address": address,
+      "orderDate": orderDate,
+      "items": items,
+      "totalAmount": totalAmount,
+      "status": status,
+    };
+  }
+
+  OrderModel copyWith({
+    String? id,
+    String? customerName,
+    String? mobile,
+    String? address,
+    String? orderDate,
+    List<Map<String, dynamic>>? items,
+    double? totalAmount,
+    String? status,
+  }) {
+    return OrderModel(
+      id: id ?? this.id,
+      customerName: customerName ?? this.customerName,
+      mobile: mobile ?? this.mobile,
+      address: address ?? this.address,
+      orderDate: orderDate ?? this.orderDate,
+      items: items ?? this.items,
+      totalAmount: totalAmount ?? this.totalAmount,
+      status: status ?? this.status,
     );
   }
 }
