@@ -11,8 +11,11 @@ import '../models/order_model.dart';
 
 class InvoiceService {
   static const String shopName = "ARIHANT BIKE & SCOOTY SPARE";
+
   static const String phone = "8178478220";
+
   static const String website = "www.absspares.in";
+
   static const String address = "Madhu Vihar, I.P. Extension, Delhi";
 
   Future<pw.MemoryImage?> _loadLogo() async {
@@ -29,278 +32,332 @@ class InvoiceService {
     }
   }
 
-  String invoiceNumber(OrderModel order) {
+  Future<pw.Font> _loadFont() async {
+    final data = await rootBundle.load(
+      "assets/fonts/NotoSans-VariableFont_wdth,wght.ttf",
+    );
+
+    return pw.Font.ttf(data);
+  }
+
+  String invoiceNumber(
+    OrderModel order,
+  ) {
     if (order.id == null || order.id!.isEmpty) {
       return "ABS-${DateTime.now().millisecondsSinceEpoch}";
     }
 
     final id = order.id!;
 
-    return id.length > 6
-        ? "ABS-${id.substring(0, 6).toUpperCase()}"
-        : "ABS-${id.toUpperCase()}";
+    if (id.length > 6) {
+      return "ABS-${id.substring(0, 6).toUpperCase()}";
+    }
+
+    return "ABS-${id.toUpperCase()}";
+  }
+
+  double toDouble(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+
+    return double.tryParse(
+          value.toString(),
+        ) ??
+        0.0;
   }
 
   Future<void> generateAndShareInvoice(
     OrderModel order,
   ) async {
-    final pdf = pw.Document();
+    try {
+      final pdf = pw.Document();
 
-    final logo = await _loadLogo();
+      final font = await _loadFont();
 
-    pdf.addPage(
-      pw.MultiPage(
-        pageTheme: pw.PageTheme(
-          margin: const pw.EdgeInsets.all(20),
-        ),
-        build: (context) {
-          return [
-            pw.Container(
-              padding: const pw.EdgeInsets.all(12),
-              decoration: pw.BoxDecoration(
-                color: PdfColors.red700,
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.center,
-                children: [
-                  if (logo != null)
-                    pw.Container(
-                      width: 55,
-                      height: 55,
-                      decoration: pw.BoxDecoration(
-                        color: PdfColors.white,
-                        borderRadius: pw.BorderRadius.circular(8),
-                      ),
-                      padding: const pw.EdgeInsets.all(5),
-                      child: pw.Image(logo),
-                    ),
-                  if (logo != null) pw.SizedBox(width: 12),
-                  pw.Expanded(
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          shopName,
-                          style: pw.TextStyle(
-                            color: PdfColors.white,
-                            fontSize: 18,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                        pw.SizedBox(height: 4),
-                        pw.Text(
-                          address,
-                          style: const pw.TextStyle(
-                            color: PdfColors.white,
-                            fontSize: 10,
-                          ),
-                        ),
-                        pw.Text(
-                          "Mobile : $phone",
-                          style: const pw.TextStyle(
-                            color: PdfColors.white,
-                            fontSize: 10,
-                          ),
-                        ),
-                        pw.Text(
-                          website,
-                          style: const pw.TextStyle(
-                            color: PdfColors.white,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+      final logo = await _loadLogo();
+      pdf.addPage(
+        pw.MultiPage(
+          pageTheme: pw.PageTheme(
+            margin: const pw.EdgeInsets.all(20),
+            theme: pw.ThemeData.withFont(
+              base: font,
+              bold: font,
+              italic: font,
+              boldItalic: font,
             ),
-            pw.SizedBox(height: 20),
-            pw.Container(
-              padding: const pw.EdgeInsets.all(12),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(
-                  color: PdfColors.grey400,
+          ),
+          build: (context) {
+            return [
+              pw.Container(
+                padding: const pw.EdgeInsets.all(12),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.red700,
+                  borderRadius: pw.BorderRadius.circular(8),
                 ),
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    "INVOICE",
-                    style: pw.TextStyle(
-                      fontSize: 18,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 10),
-                  pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    children: [
-                      pw.Text(
-                        "Invoice No : ${invoiceNumber(order)}",
-                      ),
-                      pw.Text(
-                        "Date : ${order.orderDate}",
-                      ),
-                    ],
-                  ),
-                  pw.SizedBox(height: 15),
-                  pw.Text(
-                    "Customer Details",
-                    style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    "Name : ${order.customerName}",
-                  ),
-                  pw.Text(
-                    "Mobile : ${order.mobile}",
-                  ),
-                  pw.Text(
-                    "Address : ${order.address}",
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-            pw.Table(
-              border: pw.TableBorder.all(
-                color: PdfColors.grey500,
-              ),
-              columnWidths: {
-                0: const pw.FixedColumnWidth(35),
-                1: const pw.FlexColumnWidth(),
-                2: const pw.FixedColumnWidth(45),
-                3: const pw.FixedColumnWidth(65),
-                4: const pw.FixedColumnWidth(70),
-              },
-              children: [
-                pw.TableRow(
-                  decoration: const pw.BoxDecoration(
-                    color: PdfColors.red100,
-                  ),
+                child: pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    _cell("S.No.", true),
-                    _cell("Product", true),
-                    _cell("Qty", true),
-                    _cell("Rate", true),
-                    _cell("Total", true),
+                    if (logo != null)
+                      pw.Container(
+                        width: 55,
+                        height: 55,
+                        padding: const pw.EdgeInsets.all(5),
+                        decoration: pw.BoxDecoration(
+                          color: PdfColors.white,
+                          borderRadius: pw.BorderRadius.circular(8),
+                        ),
+                        child: pw.Image(logo),
+                      ),
+                    if (logo != null) pw.SizedBox(width: 12),
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(
+                            shopName,
+                            style: pw.TextStyle(
+                              color: PdfColors.white,
+                              fontSize: 18,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                          pw.SizedBox(height: 4),
+                          pw.Text(
+                            address,
+                            style: const pw.TextStyle(
+                              color: PdfColors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                          pw.Text(
+                            "Mobile : $phone",
+                            style: const pw.TextStyle(
+                              color: PdfColors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                          pw.Text(
+                            website,
+                            style: const pw.TextStyle(
+                              color: PdfColors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                ...List.generate(
-                  order.items.length,
-                  (index) {
-                    final item = order.items[index];
-
-                    final qty = item["quantity"] ?? 0;
-
-                    final price = (item["price"] ?? 0).toDouble();
-
-                    final total = (item["total"] ?? 0).toDouble();
-
-                    return pw.TableRow(
-                      children: [
-                        _cell("${index + 1}", false),
-                        _cell(
-                          item["name"] ?? "",
-                          false,
-                        ),
-                        _cell("$qty", false),
-                        _cell(
-                          "₹${price.toStringAsFixed(2)}",
-                          false,
-                        ),
-                        _cell(
-                          "₹${total.toStringAsFixed(2)}",
-                          false,
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 20),
-            pw.Align(
-              alignment: pw.Alignment.centerRight,
-              child: pw.Container(
-                width: 220,
-                padding: const pw.EdgeInsets.all(10),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Container(
+                padding: const pw.EdgeInsets.all(12),
                 decoration: pw.BoxDecoration(
-                  color: PdfColors.green100,
-                  borderRadius: pw.BorderRadius.circular(6),
-                  border: pw.Border.all(color: PdfColors.green),
+                  border: pw.Border.all(
+                    color: PdfColors.grey400,
+                  ),
+                  borderRadius: pw.BorderRadius.circular(8),
                 ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      "Total Items : ${order.items.length}",
+                      "INVOICE",
                       style: pw.TextStyle(
+                        fontSize: 18,
                         fontWeight: pw.FontWeight.bold,
                       ),
                     ),
-                    pw.SizedBox(height: 6),
+                    pw.SizedBox(height: 10),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text(
+                          "Invoice No : ${invoiceNumber(order)}",
+                        ),
+                        pw.Text(
+                          "Date : ${order.orderDate}",
+                        ),
+                      ],
+                    ),
+                    pw.SizedBox(height: 15),
                     pw.Text(
-                      "Grand Total : ₹${order.totalAmount.toStringAsFixed(2)}",
+                      "Customer Details",
                       style: pw.TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.green900,
                       ),
+                    ),
+                    pw.SizedBox(height: 8),
+                    pw.Text(
+                      "Name : ${order.customerName}",
+                    ),
+                    pw.Text(
+                      "Mobile : ${order.mobile}",
+                    ),
+                    pw.Text(
+                      "Address : ${order.address}",
                     ),
                   ],
                 ),
               ),
-            ),
-            pw.SizedBox(height: 30),
-            pw.Divider(),
-            pw.Center(
-              child: pw.Column(
+              pw.SizedBox(height: 20),
+              pw.Table(
+                border: pw.TableBorder.all(
+                  color: PdfColors.grey500,
+                ),
+                columnWidths: {
+                  0: const pw.FixedColumnWidth(35),
+                  1: const pw.FlexColumnWidth(),
+                  2: const pw.FixedColumnWidth(45),
+                  3: const pw.FixedColumnWidth(65),
+                  4: const pw.FixedColumnWidth(70),
+                },
                 children: [
-                  pw.Text(
-                    "Thank You For Your Purchase!",
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(
+                      color: PdfColors.red100,
                     ),
+                    children: [
+                      _cell("S.No.", true),
+                      _cell("Product", true),
+                      _cell("Qty", true),
+                      _cell("Rate", true),
+                      _cell("Total", true),
+                    ],
                   ),
-                  pw.SizedBox(height: 6),
-                  pw.Text("Visit Again"),
-                  pw.Text(shopName),
-                  pw.Text("Mobile : $phone"),
-                  pw.Text(website),
+                  ...List.generate(
+                    order.items.length,
+                    (index) {
+                      final item = order.items[index];
+
+                      final qty = item["quantity"] ?? 0;
+
+                      final price = toDouble(
+                        item["price"],
+                      );
+
+                      final total = toDouble(
+                        item["total"],
+                      );
+
+                      return pw.TableRow(
+                        children: [
+                          _cell(
+                            "${index + 1}",
+                            false,
+                          ),
+                          _cell(
+                            item["name"] ?? "",
+                            false,
+                          ),
+                          _cell(
+                            "$qty",
+                            false,
+                          ),
+                          _cell(
+                            "₹${price.toStringAsFixed(2)}",
+                            false,
+                          ),
+                          _cell(
+                            "₹${total.toStringAsFixed(2)}",
+                            false,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
-            ),
-          ];
-        },
-      ),
-    );
+              pw.SizedBox(height: 20),
+              pw.Align(
+                alignment: pw.Alignment.centerRight,
+                child: pw.Container(
+                  width: 220,
+                  padding: const pw.EdgeInsets.all(10),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.green100,
+                    borderRadius: pw.BorderRadius.circular(6),
+                    border: pw.Border.all(
+                      color: PdfColors.green,
+                    ),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        "Total Items : ${order.items.length}",
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                      pw.SizedBox(height: 6),
+                      pw.Text(
+                        "Grand Total : ₹${order.totalAmount.toStringAsFixed(2)}",
+                        style: pw.TextStyle(
+                          fontSize: 16,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.green900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 30),
+              pw.Divider(),
+              pw.Center(
+                child: pw.Column(
+                  children: [
+                    pw.Text(
+                      "Thank You For Your Purchase!",
+                      style: pw.TextStyle(
+                        fontSize: 16,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                    pw.SizedBox(height: 6),
+                    pw.Text("Visit Again"),
+                    pw.Text(shopName),
+                    pw.Text("Mobile : $phone"),
+                    pw.Text(website),
+                  ],
+                ),
+              ),
+            ];
+          },
+        ),
+      );
+      final directory = await getTemporaryDirectory();
 
-    final directory = await getTemporaryDirectory();
-    final file = File(
-      "${directory.path}/Invoice_${invoiceNumber(order)}.pdf",
-    );
+      final file = File(
+        "${directory.path}/Invoice_${invoiceNumber(order)}.pdf",
+      );
 
-    await file.writeAsBytes(await pdf.save());
+      final pdfBytes = await pdf.save();
 
-    await Printing.layoutPdf(
-      onLayout: (format) async => pdf.save(),
-    );
+      await file.writeAsBytes(pdfBytes);
 
-    await SharePlus.instance.share(
-      ShareParams(
-        files: [XFile(file.path)],
-        text: "Invoice - ${invoiceNumber(order)}",
-      ),
-    );
+      // Print Preview
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdfBytes,
+      );
+
+      // Share PDF
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [
+            XFile(file.path),
+          ],
+          text: "Invoice - ${invoiceNumber(order)}",
+        ),
+      );
+    } catch (e, stackTrace) {
+      print("Invoice Error: $e");
+      print(stackTrace);
+      rethrow;
+    }
   }
 
   pw.Widget _cell(

@@ -51,3 +51,9 @@ flutter:
 
   assets:
     - assets/images/
+
+  fonts:
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/NotoSans-VariableFont_wdth,wght.ttf
+        
