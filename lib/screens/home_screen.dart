@@ -23,27 +23,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int currentIndex = 0;
 
-  String searchText = "";
-  String selectedCategory = "All";
+  String searchText = '';
+  String selectedCategory = 'All';
 
-  final List<String> categories = [
-    "All",
-    "Engine Oil",
-    "Battery",
-    "Brake",
-    "Helmet",
-    "Tyre",
-    "Bulb",
-  ];
+  List<String> categories = ['All'];
+  List<String> topCategories = [];
 
-  final List<String> topCategories = [
-    "Engine Oil",
-    "Battery",
-    "Brake",
-    "Helmet",
-    "Tyre",
-    "Bulb",
-  ];
+  bool loadingCategories = true;
 
   final List<IconData> categoryIcons = [
     Icons.oil_barrel,
@@ -53,6 +39,30 @@ class _HomeScreenState extends State<HomeScreen> {
     Icons.tire_repair,
     Icons.lightbulb,
   ];
+
+  Future<void> loadCategories() async {
+    final products = await firestoreService.getProducts().first;
+
+    final uniqueCategories = <String>{};
+
+    for (final product in products) {
+      uniqueCategories.add(product.category);
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      categories = ['All', ...uniqueCategories];
+      topCategories = uniqueCategories.toList();
+      loadingCategories = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadCategories();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             hintText: "Search Spare Parts",
                             prefixIcon: Icon(Icons.search),
                             border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(vertical: 15),
                           ),
                         ),
                       ),
@@ -115,68 +126,77 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
-              const BannerSlider(),
-              const SizedBox(height: 22),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  "Shop by Category",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: CategoryFilter(
-                  categories: categories,
-                  selectedCategory: selectedCategory,
-                  onCategorySelected: (category) {
-                    setState(() {
-                      selectedCategory = category;
-                    });
-                  },
-                ),
-              ),
               const SizedBox(height: 20),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  "Popular Categories",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+              const BannerSlider(),
+              const SizedBox(height: 20),
+              if (loadingCategories)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    "Shop by Category",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                height: 110,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: topCategories.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(18),
-                      onTap: () {
-                        setState(() {
-                          selectedCategory = topCategories[index];
-                        });
-                      },
-                      child: CategoryCard(
-                        title: topCategories[index],
-                        icon: categoryIcons[index],
-                      ),
-                    );
-                  },
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: CategoryFilter(
+                    categories: categories,
+                    selectedCategory: selectedCategory,
+                    onCategorySelected: (category) {
+                      setState(() {
+                        selectedCategory = category;
+                      });
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: 22),
+                const SizedBox(height: 20),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    "Popular Categories",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  height: 110,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: topCategories.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () {
+                          setState(() {
+                            selectedCategory = topCategories[index];
+                          });
+                        },
+                        child: CategoryCard(
+                          title: topCategories[index],
+                          icon: categoryIcons[index % categoryIcons.length],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
@@ -234,7 +254,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     return matchesCategory && matchesSearch;
                   }).toList();
-
                   if (filteredProducts.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.all(40),
@@ -283,29 +302,36 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: (index) {
           if (index == currentIndex) return;
 
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const CartScreen(),
-              ),
-            );
-            return;
-          }
+          switch (index) {
+            case 0:
+              setState(() {
+                currentIndex = 0;
+              });
+              break;
 
-          if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const ProfileScreen(),
-              ),
-            );
-            return;
-          }
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CartScreen(),
+                ),
+              );
+              break;
 
-          setState(() {
-            currentIndex = index;
-          });
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProfileScreen(),
+                ),
+              );
+              break;
+
+            default:
+              setState(() {
+                currentIndex = index;
+              });
+          }
         },
       ),
     );

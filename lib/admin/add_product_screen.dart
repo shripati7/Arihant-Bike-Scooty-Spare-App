@@ -28,8 +28,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController minimumWholesaleQtyController =
       TextEditingController();
 
-  final TextEditingController categoryController = TextEditingController();
-
   final TextEditingController stockController = TextEditingController();
 
   XFile? selectedImage;
@@ -37,6 +35,47 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String imageUrl = "";
 
   bool loading = false;
+
+  List<String> categories = [];
+
+  String? selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    loadCategories();
+  }
+
+  Future<void> loadCategories() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection("categories")
+          .orderBy("name")
+          .get();
+
+      categories = snapshot.docs
+          .map(
+            (doc) => (doc.data()["name"] ?? "").toString(),
+          )
+          .where(
+            (category) => category.trim().isNotEmpty,
+          )
+          .toList();
+
+      if (categories.isNotEmpty) {
+        selectedCategory = categories.first;
+      }
+
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint(
+        "Category Load Error: $e",
+      );
+    }
+  }
+
   Future<void> pickImageFromGallery() async {
     final image = await imageService.pickFromGallery();
 
@@ -59,11 +98,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Future<bool> uploadProductImage() async {
     if (selectedImage == null) {
+      if (!mounted) return false;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Please select a product image"),
+          content: Text(
+            "Please select a product image",
+          ),
         ),
       );
+
       return false;
     }
 
@@ -73,22 +117,35 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
 
     if (url == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Image upload failed"),
+      if (!mounted) return false;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Image upload failed",
           ),
-        );
-      }
+        ),
+      );
+
       return false;
     }
 
     imageUrl = url;
+
     return true;
   }
 
   Future<void> saveProduct() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please select a category"),
+        ),
+      );
       return;
     }
 
@@ -109,38 +166,57 @@ class _AddProductScreenState extends State<AddProductScreen> {
       final uploaded = await uploadProductImage();
 
       if (!uploaded) {
-        setState(() {
-          loading = false;
-        });
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
         return;
       }
+
       await FirebaseFirestore.instance.collection("products").add({
         "name": nameController.text.trim(),
 
         // Retail Price
-        "price": double.parse(priceController.text),
+        "price": double.parse(
+          priceController.text.trim(),
+        ),
 
         // Wholesale Price
-        "wholesalePrice": double.parse(wholesalePriceController.text),
+        "wholesalePrice": double.parse(
+          wholesalePriceController.text.trim(),
+        ),
 
         // Minimum Wholesale Qty
-        "minimumWholesaleQty": int.parse(minimumWholesaleQtyController.text),
+        "minimumWholesaleQty": int.parse(
+          minimumWholesaleQtyController.text.trim(),
+        ),
+
+        // Product Category
+        "category": selectedCategory,
 
         // Firebase Storage Image URL
         "image": imageUrl,
 
-        "category": categoryController.text.trim(),
-
+        // Default Rating
         "rating": 5.0,
 
-        "stock": int.parse(stockController.text),
+        // Stock
+        "stock": int.parse(
+          stockController.text.trim(),
+        ),
+
+        // Created Time
+        "createdAt": FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Product Added Successfully"),
+          content: Text(
+            "Product Added Successfully",
+          ),
         ),
       );
 
@@ -148,12 +224,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
       priceController.clear();
       wholesalePriceController.clear();
       minimumWholesaleQtyController.clear();
-      categoryController.clear();
       stockController.clear();
 
       setState(() {
         selectedImage = null;
         imageUrl = "";
+
+        if (categories.isNotEmpty) {
+          selectedCategory = categories.first;
+        }
       });
 
       Navigator.pop(context);
@@ -180,9 +259,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     priceController.dispose();
     wholesalePriceController.dispose();
     minimumWholesaleQtyController.dispose();
-    categoryController.dispose();
     stockController.dispose();
-
     super.dispose();
   }
 
@@ -250,90 +327,105 @@ class _AddProductScreenState extends State<AddProductScreen> {
               const SizedBox(height: 24),
               TextFormField(
                 controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: "Product Name",
+                  border: OutlineInputBorder(),
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Enter product name";
                   }
                   return null;
                 },
-                decoration: const InputDecoration(
-                  labelText: "Product Name",
-                  border: OutlineInputBorder(),
-                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: priceController,
                 keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "Retail Price",
+                  border: OutlineInputBorder(),
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Enter retail price";
                   }
                   return null;
                 },
-                decoration: const InputDecoration(
-                  labelText: "Retail Price",
-                  border: OutlineInputBorder(),
-                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: wholesalePriceController,
                 keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "Wholesale Price",
+                  border: OutlineInputBorder(),
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Enter wholesale price";
                   }
                   return null;
                 },
-                decoration: const InputDecoration(
-                  labelText: "Wholesale Price",
-                  border: OutlineInputBorder(),
-                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: minimumWholesaleQtyController,
                 keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "Minimum Wholesale Qty",
+                  border: OutlineInputBorder(),
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Enter minimum wholesale quantity";
                   }
                   return null;
                 },
-                decoration: const InputDecoration(
-                  labelText: "Minimum Wholesale Qty",
-                  border: OutlineInputBorder(),
-                ),
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: categoryController,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return "Enter category";
-                  }
-                  return null;
-                },
+              DropdownButtonFormField<String>(
+                initialValue: selectedCategory,
                 decoration: const InputDecoration(
                   labelText: "Category",
                   border: OutlineInputBorder(),
                 ),
+                items: categories
+                    .map(
+                      (category) => DropdownMenuItem<String>(
+                        value: category,
+                        child: Text(category),
+                      ),
+                    )
+                    .toList(),
+                onChanged: loading
+                    ? null
+                    : (value) {
+                        setState(() {
+                          selectedCategory = value;
+                        });
+                      },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please select a category";
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: stockController,
                 keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "Stock",
+                  border: OutlineInputBorder(),
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Enter stock";
                   }
                   return null;
                 },
-                decoration: const InputDecoration(
-                  labelText: "Stock",
-                  border: OutlineInputBorder(),
-                ),
               ),
               const SizedBox(height: 30),
               SizedBox(

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -354,8 +355,8 @@ class InvoiceService {
         ),
       );
     } catch (e, stackTrace) {
-      print("Invoice Error: $e");
-      print(stackTrace);
+      debugPrint("Invoice Error: $e");
+      debugPrint(stackTrace.toString());
       rethrow;
     }
   }
