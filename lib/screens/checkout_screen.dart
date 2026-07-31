@@ -25,6 +25,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   final TextEditingController mobileController = TextEditingController();
 
+  final TextEditingController pinCodeController = TextEditingController();
+
   final TextEditingController addressController = TextEditingController();
 
   final OrderService orderService = OrderService.instance;
@@ -33,6 +35,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void dispose() {
     nameController.dispose();
     mobileController.dispose();
+    pinCodeController.dispose();
     addressController.dispose();
     super.dispose();
   }
@@ -65,6 +68,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       id: null,
       customerName: nameController.text.trim(),
       mobile: mobileController.text.trim(),
+      pinCode: pinCodeController.text.trim(),
       address: addressController.text.trim(),
       orderDate: DateTime.now().toIso8601String(),
       items: items,
@@ -135,6 +139,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               const SizedBox(height: 15),
               TextFormField(
+                controller: pinCodeController,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                decoration: const InputDecoration(
+                  labelText: "PIN Code",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.pin_drop),
+                  counterText: "",
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return "Please enter PIN Code";
+                  }
+                  if (value.trim().length != 6) {
+                    return "PIN Code must be exactly 6 digits";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
                 controller: addressController,
                 maxLines: 3,
                 decoration: const InputDecoration(
@@ -180,11 +205,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 ),
                               ),
                               Text(
-                                "${item.quantity} × ₹${PricingHelper.format(item.price)}",
+                                "${item.quantity} × ${PricingHelper.format(item.price)}",
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                "₹${PricingHelper.format(item.total)}",
+                                PricingHelper.format(item.total),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -205,7 +230,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                           ),
                           Text(
-                            "₹${PricingHelper.format(cart.totalAmount)}",
+                            PricingHelper.format(cart.totalAmount),
                             style: const TextStyle(
                               fontSize: 22,
                               color: Colors.green,

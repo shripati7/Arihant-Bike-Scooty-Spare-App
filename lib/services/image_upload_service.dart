@@ -2,7 +2,9 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ImageUploadService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -40,12 +42,35 @@ class ImageUploadService {
     }
   }
 
+  Future<File> _compressImage(File file) async {
+    final tempDir = await getTemporaryDirectory();
+
+    final targetPath =
+        "${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg";
+
+    final compressedFile = await FlutterImageCompress.compressAndGetFile(
+      file.absolute.path,
+      targetPath,
+      quality: 35,
+      minWidth: 400,
+      minHeight: 400,
+    );
+
+    if (compressedFile == null) {
+      return file;
+    }
+
+    return File(compressedFile.path);
+  }
+
   Future<String?> uploadImage({
     required XFile imageFile,
     required String folderName,
   }) async {
     try {
-      final File file = File(imageFile.path);
+      File file = File(imageFile.path);
+
+      file = await _compressImage(file);
 
       final String fileName =
           "${DateTime.now().millisecondsSinceEpoch}_${imageFile.name}";

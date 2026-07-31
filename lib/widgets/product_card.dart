@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -64,16 +65,26 @@ class ProductCard extends StatelessWidget {
                               color: Colors.red,
                             )
                           : product.image.startsWith("http")
-                              ? Image.network(
-                                  product.image,
+                              ? CachedNetworkImage(
+                                  imageUrl: product.image,
                                   fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.motorcycle,
-                                      size: 90,
-                                      color: Colors.red,
-                                    );
-                                  },
+                                  fadeInDuration:
+                                      const Duration(milliseconds: 200),
+                                  placeholder: (context, url) => const Center(
+                                    child: SizedBox(
+                                      width: 28,
+                                      height: 28,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(
+                                    Icons.motorcycle,
+                                    size: 90,
+                                    color: Colors.red,
+                                  ),
                                 )
                               : Image.asset(
                                   product.image,

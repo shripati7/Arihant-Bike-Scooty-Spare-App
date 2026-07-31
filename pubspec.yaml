@@ -31,6 +31,12 @@ dependencies:
   # Image Picker
   image_picker: ^1.1.2
 
+  # Image Cache (Performance)
+  cached_network_image: ^3.4.1
+
+  # Image Compression (Performance)
+  flutter_image_compress: ^2.4.0
+
   # PDF Invoice
   pdf: ^3.11.3
   printing: ^5.14.2

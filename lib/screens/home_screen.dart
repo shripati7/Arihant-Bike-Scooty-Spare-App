@@ -21,6 +21,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final FirestoreService firestoreService = FirestoreService();
 
+  // Performance Optimization
+  late final Stream<List<Product>> productsStream;
+
   int currentIndex = 0;
 
   String searchText = '';
@@ -41,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   Future<void> loadCategories() async {
-    final products = await firestoreService.getProducts().first;
+    final products = await productsStream.first;
 
     final uniqueCategories = <String>{};
 
@@ -61,6 +64,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Create Firestore stream only once
+    productsStream = firestoreService.getProducts();
+
     loadCategories();
   }
 
@@ -95,7 +102,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             hintText: "Search Spare Parts",
                             prefixIcon: Icon(Icons.search),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(vertical: 15),
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 15,
+                            ),
                           ),
                         ),
                       ),
@@ -222,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 10),
               StreamBuilder<List<Product>>(
-                stream: firestoreService.getProducts(),
+                stream: productsStream,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Padding(
@@ -254,6 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     return matchesCategory && matchesSearch;
                   }).toList();
+
                   if (filteredProducts.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.all(40),

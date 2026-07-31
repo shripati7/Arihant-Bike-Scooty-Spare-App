@@ -18,6 +18,7 @@ class OrderService {
       customerName: order.customerName,
       mobile: order.mobile,
       address: order.address,
+      pinCode: order.pinCode,
       totalAmount: order.totalAmount,
       orderDate: DateTime.now().toIso8601String(),
       status: "Pending",

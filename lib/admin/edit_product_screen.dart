@@ -42,7 +42,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
     );
 
     priceController = TextEditingController(
-      text: widget.product["price"].toString(),
+      text: (() {
+        final price = (widget.product["price"] ?? 0).toDouble();
+        return price % 1 == 0 ? price.toInt().toString() : price.toString();
+      })(),
     );
 
     categoryController = TextEditingController(
@@ -225,7 +228,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
             const SizedBox(height: 15),
             TextField(
               controller: priceController,
-              keyboardType: TextInputType.number,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(
                 labelText: "Price",
                 border: OutlineInputBorder(),

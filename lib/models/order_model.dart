@@ -3,6 +3,7 @@ class OrderModel {
   final String customerName;
   final String mobile;
   final String address;
+  final String pinCode;
   final String orderDate;
   final List<Map<String, dynamic>> items;
   final double totalAmount;
@@ -13,6 +14,7 @@ class OrderModel {
     required this.customerName,
     required this.mobile,
     required this.address,
+    required this.pinCode,
     required this.orderDate,
     required this.items,
     required this.totalAmount,
@@ -28,6 +30,7 @@ class OrderModel {
       customerName: map["customerName"] ?? "",
       mobile: map["mobile"] ?? "",
       address: map["address"] ?? "",
+      pinCode: map["pinCode"] ?? "",
       orderDate: map["orderDate"] ?? "",
       items: List<Map<String, dynamic>>.from(
         map["items"] ?? [],
@@ -36,11 +39,13 @@ class OrderModel {
       status: map["status"] ?? "Pending",
     );
   }
+
   Map<String, dynamic> toMap() {
     return {
       "customerName": customerName,
       "mobile": mobile,
       "address": address,
+      "pinCode": pinCode,
       "orderDate": orderDate,
       "items": items,
       "totalAmount": totalAmount,
@@ -53,6 +58,7 @@ class OrderModel {
     String? customerName,
     String? mobile,
     String? address,
+    String? pinCode,
     String? orderDate,
     List<Map<String, dynamic>>? items,
     double? totalAmount,
@@ -63,6 +69,7 @@ class OrderModel {
       customerName: customerName ?? this.customerName,
       mobile: mobile ?? this.mobile,
       address: address ?? this.address,
+      pinCode: pinCode ?? this.pinCode,
       orderDate: orderDate ?? this.orderDate,
       items: items ?? this.items,
       totalAmount: totalAmount ?? this.totalAmount,

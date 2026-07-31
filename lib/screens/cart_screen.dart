@@ -57,13 +57,13 @@ class CartScreen extends StatelessWidget {
                                   children: [
                                     const SizedBox(height: 4),
                                     Text(
-                                      "₹${PricingHelper.format(item.price)} × ${item.quantity}",
+                                      "${PricingHelper.format(item.price)} × ${item.quantity}",
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     Text(
-                                      "Subtotal : ₹${item.total.toStringAsFixed(0)}",
+                                      "Subtotal : ${PricingHelper.format(item.total)}",
                                     ),
                                     const SizedBox(height: 8),
                                     if (wholesaleApplied)
@@ -153,7 +153,7 @@ class CartScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        "Grand Total : ₹${PricingHelper.format(cart.totalAmount)}",
+                        "Grand Total : ${PricingHelper.format(cart.totalAmount)}",
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
