@@ -15,4 +15,17 @@ class FirestoreService {
       }).toList();
     });
   }
+
+  Stream<List<String>> getCategories() {
+    return _firestore
+        .collection('categories')
+        .orderBy('name')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => (doc.data()['name'] as String?) ?? '')
+          .where((name) => name.isNotEmpty)
+          .toList();
+    });
+  }
 }

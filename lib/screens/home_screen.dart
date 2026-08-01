@@ -9,6 +9,7 @@ import '../widgets/category_card.dart';
 import '../widgets/category_filter.dart';
 import '../widgets/product_card.dart';
 import 'cart_screen.dart';
+import 'category_screen.dart';
 import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -44,20 +45,14 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   Future<void> loadCategories() async {
-    final products = await productsStream.first;
+    firestoreService.getCategories().listen((categoryList) {
+      if (!mounted) return;
 
-    final uniqueCategories = <String>{};
-
-    for (final product in products) {
-      uniqueCategories.add(product.category);
-    }
-
-    if (!mounted) return;
-
-    setState(() {
-      categories = ['All', ...uniqueCategories];
-      topCategories = uniqueCategories.toList();
-      loadingCategories = false;
+      setState(() {
+        categories = ['All', ...categoryList];
+        topCategories = categoryList;
+        loadingCategories = false;
+      });
     });
   }
 
@@ -81,6 +76,17 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  "Arihant Bike & Scooty Spare",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
@@ -323,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const CartScreen(),
+                  builder: (_) => const CategoryScreen(),
                 ),
               );
               break;
@@ -332,15 +338,19 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const ProfileScreen(),
+                  builder: (_) => const CartScreen(),
                 ),
               );
               break;
 
-            default:
-              setState(() {
-                currentIndex = index;
-              });
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProfileScreen(),
+                ),
+              );
+              break;
           }
         },
       ),
