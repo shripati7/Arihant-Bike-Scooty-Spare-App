@@ -3,6 +3,9 @@ class Product {
   final String name;
   final String image;
 
+  // Shop ID
+  final String shopId;
+
   // Retail Price
   final double price;
 
@@ -22,6 +25,7 @@ class Product {
     required this.id,
     required this.name,
     required this.image,
+    this.shopId = '',
     required this.price,
     required this.wholesalePrice,
     required this.minimumWholesaleQty,
@@ -39,6 +43,9 @@ class Product {
       id: id,
       name: data["name"] ?? "",
       image: data["image"] ?? "",
+
+      // Shop ID
+      shopId: data["shopId"] ?? "",
 
       // Retail Price
       price: (data["price"] as num?)?.toDouble() ?? 0.0,
@@ -64,6 +71,7 @@ class Product {
     return {
       "name": name,
       "image": image,
+      "shopId": shopId,
       "price": price,
       "wholesalePrice": wholesalePrice,
       "minimumWholesaleQty": minimumWholesaleQty,
