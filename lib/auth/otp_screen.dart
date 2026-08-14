@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../screens/home_screen.dart';
+import '../screens/main_navigation_screen.dart';
 import '../services/auth_service.dart';
 
 class OtpScreen extends StatefulWidget {
@@ -54,7 +54,7 @@ class _OtpScreenState extends State<OtpScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
+          builder: (_) => const MainNavigationScreen(),
         ),
         (route) => false,
       );
