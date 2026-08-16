@@ -8,6 +8,13 @@ class UserModel {
   final String address;
   final Timestamp createdAt;
 
+  // Multi Dealer Fields
+  final String role;
+  final String shopId;
+  final String shopCode;
+  final bool isActive;
+  final Timestamp? trialEndDate;
+
   UserModel({
     required this.uid,
     required this.name,
@@ -15,6 +22,11 @@ class UserModel {
     required this.email,
     required this.address,
     required this.createdAt,
+    this.role = '',
+    this.shopId = '',
+    this.shopCode = '',
+    this.isActive = true,
+    this.trialEndDate,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,6 +37,11 @@ class UserModel {
       'email': email,
       'address': address,
       'createdAt': createdAt,
+      'role': role,
+      'shopId': shopId,
+      'shopCode': shopCode,
+      'isActive': isActive,
+      'trialEndDate': trialEndDate,
     };
   }
 
@@ -36,6 +53,11 @@ class UserModel {
       email: map['email'] ?? '',
       address: map['address'] ?? '',
       createdAt: map['createdAt'] ?? Timestamp.now(),
+      role: map['role'] ?? '',
+      shopId: map['shopId'] ?? '',
+      shopCode: map['shopCode'] ?? '',
+      isActive: map['isActive'] ?? true,
+      trialEndDate: map['trialEndDate'],
     );
   }
 }
