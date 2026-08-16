@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../services/shop_service.dart';
+import '../services/user_service.dart';
 
 class DealerRegistrationScreen extends StatefulWidget {
   const DealerRegistrationScreen({super.key});
@@ -39,6 +40,11 @@ class _DealerRegistrationScreenState extends State<DealerRegistrationScreen> {
         shopName: shopNameController.text.trim(),
         ownerName: ownerNameController.text.trim(),
         mobile: mobileController.text.trim(),
+      );
+
+      await UserService.instance.assignDealerRole(
+        shopId: shopId,
+        shopCode: shopCode,
       );
 
       if (!mounted) return;
