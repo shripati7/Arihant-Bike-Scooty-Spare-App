@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../services/image_upload_service.dart';
+import '../services/user_service.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -165,6 +166,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
     try {
       final uploaded = await uploadProductImage();
 
+      final shopId = await UserService.instance.getCurrentUserShopId();
+
       if (!uploaded) {
         if (mounted) {
           setState(() {
@@ -208,6 +211,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
         // Created Time
         "createdAt": FieldValue.serverTimestamp(),
+        "shopId": shopId ?? "",
       });
 
       if (!mounted) return;
