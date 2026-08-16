@@ -78,4 +78,26 @@ class UserService {
 
     return data?['role'] as String?;
   }
+
+  /// Assign Dealer Role
+  Future<void> assignDealerRole({
+    required String shopId,
+    required String shopCode,
+  }) async {
+    final user = _auth.currentUser;
+
+    if (user == null) return;
+
+    await _firestore.collection('users').doc(user.uid).update({
+      'role': 'dealer',
+      'shopId': shopId,
+      'shopCode': shopCode,
+      'isActive': true,
+      'trialEndDate': Timestamp.fromDate(
+        DateTime.now().add(
+          const Duration(days: 60),
+        ),
+      ),
+    });
+  }
 }

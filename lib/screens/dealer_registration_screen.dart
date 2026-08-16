@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
+import '../services/shop_service.dart';
 
 class DealerRegistrationScreen extends StatefulWidget {
   const DealerRegistrationScreen({super.key});
@@ -12,6 +15,55 @@ class _DealerRegistrationScreenState extends State<DealerRegistrationScreen> {
   final shopNameController = TextEditingController();
   final ownerNameController = TextEditingController();
   final mobileController = TextEditingController();
+
+  Future<void> createShop() async {
+    if (shopNameController.text.trim().isEmpty ||
+        ownerNameController.text.trim().isEmpty ||
+        mobileController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("All fields are required"),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final shopCode = await ShopService.instance.generateShopCode();
+
+      final shopId = FirebaseFirestore.instance.collection('shops').doc().id;
+
+      await ShopService.instance.createShop(
+        shopId: shopId,
+        shopCode: shopCode,
+        shopName: shopNameController.text.trim(),
+        ownerName: ownerNameController.text.trim(),
+        mobile: mobileController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Shop Created Successfully\nShop Code: $shopCode",
+          ),
+        ),
+      );
+
+      shopNameController.clear();
+      ownerNameController.clear();
+      mobileController.clear();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error: $e"),
+        ),
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -63,7 +115,7 @@ class _DealerRegistrationScreenState extends State<DealerRegistrationScreen> {
             ),
             const SizedBox(height: 25),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: createShop,
               child: const Text("Create Shop"),
             ),
           ],
