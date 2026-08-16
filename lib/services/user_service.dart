@@ -32,6 +32,11 @@ class UserService {
       email: user.email ?? '',
       address: '',
       createdAt: Timestamp.now(),
+      role: '',
+      shopId: '',
+      shopCode: '',
+      isActive: true,
+      trialEndDate: null,
     );
 
     await userDoc.set(newUser.toMap());
