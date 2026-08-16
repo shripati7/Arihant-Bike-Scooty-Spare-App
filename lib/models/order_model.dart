@@ -8,6 +8,7 @@ class OrderModel {
   final List<Map<String, dynamic>> items;
   final double totalAmount;
   final String status;
+  final String shopId;
 
   OrderModel({
     this.id,
@@ -19,6 +20,7 @@ class OrderModel {
     required this.items,
     required this.totalAmount,
     this.status = "Pending",
+    this.shopId = '',
   });
 
   factory OrderModel.fromMap(
@@ -37,6 +39,7 @@ class OrderModel {
       ),
       totalAmount: (map["totalAmount"] ?? 0).toDouble(),
       status: map["status"] ?? "Pending",
+      shopId: map["shopId"] ?? "",
     );
   }
 
@@ -50,6 +53,7 @@ class OrderModel {
       "items": items,
       "totalAmount": totalAmount,
       "status": status,
+      "shopId": shopId,
     };
   }
 
@@ -63,6 +67,7 @@ class OrderModel {
     List<Map<String, dynamic>>? items,
     double? totalAmount,
     String? status,
+    String? shopId,
   }) {
     return OrderModel(
       id: id ?? this.id,
@@ -74,6 +79,7 @@ class OrderModel {
       items: items ?? this.items,
       totalAmount: totalAmount ?? this.totalAmount,
       status: status ?? this.status,
+      shopId: shopId ?? this.shopId,
     );
   }
 }
