@@ -28,4 +28,27 @@ class ShopService {
 
     return snapshot.docs.first;
   }
+
+  Future<void> createShop({
+    required String shopId,
+    required String shopCode,
+    required String shopName,
+    required String ownerName,
+    required String mobile,
+  }) async {
+    await _shops.doc(shopId).set({
+      'shopId': shopId,
+      'shopCode': shopCode,
+      'shopName': shopName,
+      'ownerName': ownerName,
+      'mobile': mobile,
+      'isActive': true,
+      'createdAt': Timestamp.now(),
+      'trialEndDate': Timestamp.fromDate(
+        DateTime.now().add(
+          const Duration(days: 60),
+        ),
+      ),
+    });
+  }
 }
