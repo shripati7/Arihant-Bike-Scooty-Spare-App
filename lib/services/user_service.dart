@@ -79,6 +79,17 @@ class UserService {
     return data?['role'] as String?;
   }
 
+  /// Get current user's shopId
+  Future<String?> getCurrentUserShopId() async {
+    final user = await getCurrentUser();
+
+    if (user == null) {
+      return null;
+    }
+
+    return user.shopId;
+  }
+
   /// Assign Dealer Role
   Future<void> assignDealerRole({
     required String shopId,
