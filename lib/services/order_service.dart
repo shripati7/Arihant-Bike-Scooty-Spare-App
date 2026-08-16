@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/order_model.dart';
+import 'user_service.dart';
 
 class OrderService {
   OrderService._();
@@ -13,6 +14,8 @@ class OrderService {
       _firestore.collection('orders');
 
   Future<void> placeOrder(OrderModel order) async {
+    final shopId = await UserService.instance.getCurrentUserShopId() ?? '';
+
     final newOrder = OrderModel(
       id: null,
       customerName: order.customerName,
@@ -23,6 +26,7 @@ class OrderService {
       orderDate: DateTime.now().toIso8601String(),
       status: "Pending",
       items: order.items,
+      shopId: shopId,
     );
 
     await _orders.add(newOrder.toMap());
