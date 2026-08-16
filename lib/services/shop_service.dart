@@ -29,6 +29,14 @@ class ShopService {
     return snapshot.docs.first;
   }
 
+  Future<String> generateShopCode() async {
+    final snapshot = await _shops.get();
+
+    final nextNumber = snapshot.docs.length + 1;
+
+    return 'ARI${nextNumber.toString().padLeft(3, '0')}';
+  }
+
   Future<void> createShop({
     required String shopId,
     required String shopCode,
