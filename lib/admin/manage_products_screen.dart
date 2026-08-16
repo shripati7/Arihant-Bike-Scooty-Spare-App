@@ -2,10 +2,32 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
+import '../services/user_service.dart';
 import 'edit_product_screen.dart';
 
-class ManageProductsScreen extends StatelessWidget {
+class ManageProductsScreen extends StatefulWidget {
   const ManageProductsScreen({super.key});
+
+  @override
+  State<ManageProductsScreen> createState() => _ManageProductsScreenState();
+}
+
+class _ManageProductsScreenState extends State<ManageProductsScreen> {
+  String? shopId;
+
+  @override
+  void initState() {
+    super.initState();
+    loadShopId();
+  }
+
+  Future<void> loadShopId() async {
+    shopId = await UserService.instance.getCurrentUserShopId();
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   Future<void> deleteProduct(BuildContext context, String id) async {
     try {
@@ -17,14 +39,12 @@ class ManageProductsScreen extends StatelessWidget {
       if (doc.exists) {
         final data = doc.data()!;
 
-        // Delete image from Firebase Storage
         if (data["image"] != null && data["image"].toString().isNotEmpty) {
           try {
             await FirebaseStorage.instance.refFromURL(data["image"]).delete();
           } catch (_) {}
         }
 
-        // Delete Firestore document
         await FirebaseFirestore.instance
             .collection("products")
             .doc(id)
@@ -84,13 +104,24 @@ class ManageProductsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (shopId == null) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Manage Products"),
         centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection("products").snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection("products")
+            .where("shopId", isEqualTo: shopId)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(
