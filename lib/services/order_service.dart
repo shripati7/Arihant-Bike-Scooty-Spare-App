@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/order_model.dart';
 import 'user_service.dart';
@@ -15,6 +16,8 @@ class OrderService {
 
   Future<void> placeOrder(OrderModel order) async {
     final shopId = await UserService.instance.getCurrentUserShopId() ?? '';
+
+    debugPrint("ORDER SHOP ID = $shopId");
 
     final newOrder = OrderModel(
       id: null,

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../models/order_model.dart';
+import '../services/user_service.dart';
 import 'order_details_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -15,6 +16,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   String searchText = "";
+  String? shopId;
+
+  @override
+  void initState() {
+    super.initState();
+    loadShopId();
+  }
+
+  Future<void> loadShopId() async {
+    shopId = await UserService.instance.getCurrentUserShopId();
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   void dispose() {
@@ -24,6 +40,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (shopId == null) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Customer Orders"),
@@ -46,15 +70,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
               },
               decoration: InputDecoration(
                 hintText: "Search by Name, Mobile or Order ID",
-                prefixIcon: const Icon(
-                  Icons.search,
-                ),
+                prefixIcon: const Icon(Icons.search),
                 suffixIcon: searchText.isEmpty
                     ? null
                     : IconButton(
-                        icon: const Icon(
-                          Icons.clear,
-                        ),
+                        icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
 
@@ -68,12 +88,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
               ),
             ),
           ),
@@ -82,16 +96,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('orders')
-            .orderBy(
-              'orderDate',
-              descending: true,
-            )
+            .where('shopId', isEqualTo: shopId)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(
-              child: Text(
-                "Something went wrong",
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(snapshot.error.toString()),
               ),
             );
           }
@@ -106,9 +118,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             return const Center(
               child: Text(
                 "No Orders Found",
-                style: TextStyle(
-                  fontSize: 18,
-                ),
+                style: TextStyle(fontSize: 18),
               ),
             );
           }
@@ -122,11 +132,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
               )
               .toList();
 
-          // ===== Part 2 se continue hoga =====
           final filteredOrders = orders.where((order) {
-            if (searchText.isEmpty) {
-              return true;
-            }
+            if (searchText.isEmpty) return true;
 
             return order.customerName.toLowerCase().contains(searchText) ||
                 order.mobile.toLowerCase().contains(searchText) ||
@@ -135,24 +142,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
           if (filteredOrders.isEmpty) {
             return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.search_off,
-                    size: 70,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 15),
-                  Text(
-                    "No Matching Orders Found",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+              child: Text("No Matching Orders Found"),
             );
           }
 
@@ -160,62 +150,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
             itemCount: filteredOrders.length,
             itemBuilder: (context, index) {
               final order = filteredOrders[index];
+
               return Card(
-                elevation: 3,
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
+                margin: const EdgeInsets.all(8),
                 child: ListTile(
-                  leading: const CircleAvatar(
-                    child: Icon(Icons.shopping_cart),
-                  ),
-                  title: Text(
-                    order.customerName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  title: Text(order.customerName),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 5),
-                      Text("📞 ${order.mobile}"),
-                      Text(
-                        "💰 ₹${order.totalAmount.toStringAsFixed(2)}",
-                      ),
-                      Text("📍 ${order.address}"),
-                      const SizedBox(height: 5),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: switch (order.status.toLowerCase()) {
-                            "pending" => Colors.orange.shade100,
-                            "processing" => Colors.blue.shade100,
-                            "shipped" => Colors.purple.shade100,
-                            "delivered" => Colors.green.shade100,
-                            "cancelled" => Colors.red.shade100,
-                            _ => Colors.grey.shade200,
-                          },
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          order.status,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                      Text(order.mobile),
+                      Text("₹${order.totalAmount}"),
+                      Text(order.status),
                     ],
                   ),
                   trailing: const Icon(
                     Icons.arrow_forward_ios,
                   ),
-                  onTap: () async {
-                    final refresh = await Navigator.push<bool>(
+                  onTap: () {
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => OrderDetailsScreen(
@@ -223,10 +175,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         ),
                       ),
                     );
-
-                    if (refresh == true && mounted) {
-                      setState(() {});
-                    }
                   },
                 ),
               );

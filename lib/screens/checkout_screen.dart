@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/order_model.dart';
 import '../providers/cart_provider.dart';
 import '../services/order_service.dart';
+import '../services/user_service.dart';
 import '../utils/pricing_helper.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -50,6 +51,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       listen: false,
     );
 
+    final shopId = await UserService.instance.getCurrentUserShopId();
+
+    debugPrint("CHECKOUT SHOP ID = $shopId");
+
     final items = cartProvider.cartItems.map((item) {
       return {
         "id": item.id,
@@ -66,6 +71,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }).toList();
     final order = OrderModel(
       id: null,
+      shopId: shopId ?? '',
       customerName: nameController.text.trim(),
       mobile: mobileController.text.trim(),
       pinCode: pinCodeController.text.trim(),

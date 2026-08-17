@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/user_model.dart';
 
@@ -11,7 +12,6 @@ class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// Save current user to Firestore (only if not already present)
   Future<void> saveUser() async {
     final user = _auth.currentUser;
 
@@ -42,7 +42,6 @@ class UserService {
     await userDoc.set(newUser.toMap());
   }
 
-  /// Get current logged-in user
   Future<UserModel?> getCurrentUser() async {
     final user = _auth.currentUser;
 
@@ -59,12 +58,10 @@ class UserService {
     return UserModel.fromMap(doc.data()!);
   }
 
-  /// Update user profile
   Future<void> updateUser(UserModel user) async {
     await _firestore.collection('users').doc(user.uid).update(user.toMap());
   }
 
-  /// Get current user's role
   Future<String?> getUserRole() async {
     final user = _auth.currentUser;
 
@@ -79,9 +76,14 @@ class UserService {
     return data?['role'] as String?;
   }
 
-  /// Get current user's shopId
   Future<String?> getCurrentUserShopId() async {
     final user = await getCurrentUser();
+
+    debugPrint("========== USER DEBUG ==========");
+    debugPrint("UID = ${user?.uid}");
+    debugPrint("ROLE = ${user?.role}");
+    debugPrint("SHOP ID = ${user?.shopId}");
+    debugPrint("SHOP CODE = ${user?.shopCode}");
 
     if (user == null) {
       return null;
@@ -90,7 +92,6 @@ class UserService {
     return user.shopId;
   }
 
-  /// Assign Dealer Role
   Future<void> assignDealerRole({
     required String shopId,
     required String shopCode,
