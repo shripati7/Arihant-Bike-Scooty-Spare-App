@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SubscriptionScreen extends StatelessWidget {
   const SubscriptionScreen({super.key});
+
+  Future<void> _contactSupport() async {
+    final Uri whatsappUri = Uri.parse('https://wa.me/919810365166');
+
+    if (await canLaunchUrl(whatsappUri)) {
+      await launchUrl(
+        whatsappUri,
+        mode: LaunchMode.externalApplication,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +48,8 @@ class SubscriptionScreen extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.phone),
+              onPressed: _contactSupport,
+              icon: const Icon(Icons.chat),
               label: const Text("Contact Support"),
             ),
           ],

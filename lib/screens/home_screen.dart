@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> loadShopSettings() async {
-    final settings = await SettingsService.getSettings();
+    final settings = await SettingsService.instance.getSettings();
 
     // print("SHOP NAME = ${settings?['shopName']}");
 
