@@ -69,6 +69,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       email: emailController.text.trim(),
       address: addressController.text.trim(),
       createdAt: currentUser!.createdAt,
+      role: currentUser!.role,
+      shopId: currentUser!.shopId,
+      shopCode: currentUser!.shopCode,
+      isActive: currentUser!.isActive,
+      trialEndDate: currentUser!.trialEndDate,
     );
 
     await UserService.instance.updateUser(updatedUser);
@@ -183,6 +188,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 30),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Subscription Status',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      currentUser?.isActive == true
+                          ? 'Status: Active'
+                          : 'Status: Expired',
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Shop Code: ${currentUser?.shopCode ?? '-'}',
+                    ),
+                    const SizedBox(height: 6),
+                    Builder(
+                      builder: (context) {
+                        final expiryDate = currentUser?.trialEndDate?.toDate();
+
+                        final remainingDays = expiryDate == null
+                            ? 0
+                            : expiryDate.difference(DateTime.now()).inDays;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Expiry Date: ${expiryDate?.toString().split(' ')[0] ?? '-'}',
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              remainingDays > 0
+                                  ? 'Remaining Days: $remainingDays Days'
+                                  : 'Subscription Expired',
+                              style: TextStyle(
+                                color: remainingDays > 0
+                                    ? Colors.green
+                                    : Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
             Card(
               child: ListTile(
                 leading: const Icon(Icons.shopping_bag),
