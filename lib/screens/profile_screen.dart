@@ -218,7 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         final remainingDays = expiryDate == null
                             ? 0
-                            : expiryDate.difference(DateTime.now()).inDays;
+                            : expiryDate.difference(DateTime.now()).inDays + 1;
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

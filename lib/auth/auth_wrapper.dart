@@ -1,3 +1,4 @@
+import '../models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -51,6 +52,24 @@ class AuthWrapper extends StatelessWidget {
               // Trial Expired
               if (user.trialEndDate != null &&
                   user.trialEndDate!.toDate().isBefore(DateTime.now())) {
+                if (user.isActive) {
+                  UserService.instance.updateUser(
+                    UserModel(
+                      uid: user.uid,
+                      name: user.name,
+                      phone: user.phone,
+                      email: user.email,
+                      address: user.address,
+                      createdAt: user.createdAt,
+                      role: user.role,
+                      shopId: user.shopId,
+                      shopCode: user.shopCode,
+                      isActive: false,
+                      trialEndDate: user.trialEndDate,
+                    ),
+                  );
+                }
+
                 return const SubscriptionScreen();
               }
 
