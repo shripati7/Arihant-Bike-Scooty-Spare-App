@@ -304,6 +304,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 10),
             Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Dealer Dashboard',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text('Shop Name: ${shopNameController.text}'),
+                    SizedBox(height: 6),
+                    Text('Shop Code: ${currentUser?.shopCode ?? "-"}'),
+                    SizedBox(height: 6),
+                    Text(
+                      currentUser?.isActive == true
+                          ? 'Subscription: Active'
+                          : 'Subscription: Expired',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Card(
               child: ListTile(
                 leading: const Icon(Icons.shopping_bag),
                 title: const Text('My Orders'),
