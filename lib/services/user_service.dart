@@ -32,11 +32,15 @@ class UserService {
       email: user.email ?? '',
       address: '',
       createdAt: Timestamp.now(),
-      role: '',
+      role: 'dealer',
       shopId: '',
-      shopCode: '',
+      shopCode: 'SHOP${DateTime.now().millisecondsSinceEpoch}',
       isActive: true,
-      trialEndDate: null,
+      trialEndDate: Timestamp.fromDate(
+        DateTime.now().add(
+          const Duration(days: 60),
+        ),
+      ),
     );
 
     await userDoc.set(newUser.toMap());
@@ -120,7 +124,11 @@ class UserService {
   Future<List<UserModel>> getAllDealers() async {
     final snapshot = await _firestore.collection('users').get();
 
-    return snapshot.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
+    return snapshot.docs
+        .map(
+          (doc) => UserModel.fromMap(doc.data()),
+        )
+        .toList();
   }
 
   Future<void> updateSubscription({
