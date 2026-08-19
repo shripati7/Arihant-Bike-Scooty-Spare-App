@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'add_product_screen.dart';
 import 'manage_categories_screen.dart';
@@ -8,6 +9,31 @@ import '../screens/orders_screen.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
+  Future<Map<String, int>> getStats() async {
+    final users = await FirebaseFirestore.instance
+        .collection('users')
+        .where('role', isEqualTo: 'dealer')
+        .get();
+
+    final products =
+        await FirebaseFirestore.instance.collection('products').get();
+
+    final orders = await FirebaseFirestore.instance.collection('orders').get();
+
+    final activeDealers = users.docs
+        .where(
+          (e) => e.data()['isActive'] == true,
+        )
+        .length;
+
+    return {
+      'dealers': users.docs.length,
+      'active': activeDealers,
+      'expired': users.docs.length - activeDealers,
+      'products': products.docs.length,
+      'orders': orders.docs.length,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +62,34 @@ class AdminDashboard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 30),
+            FutureBuilder<Map<String, int>>(
+              future: getStats(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                final stats = snapshot.data!;
+
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Text("Dealers : ${stats['dealers']}"),
+                        Text("Active : ${stats['active']}"),
+                        Text("Expired : ${stats['expired']}"),
+                        Text("Products : ${stats['products']}"),
+                        Text("Orders : ${stats['orders']}"),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 55,
