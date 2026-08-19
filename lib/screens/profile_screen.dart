@@ -19,6 +19,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
+  final TextEditingController shopNameController = TextEditingController();
+  final TextEditingController shopContactController = TextEditingController();
 
   bool isLoading = true;
 
@@ -95,6 +97,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     phoneController.dispose();
     emailController.dispose();
     addressController.dispose();
+    shopNameController.dispose();
+    shopContactController.dispose();
     super.dispose();
   }
 
