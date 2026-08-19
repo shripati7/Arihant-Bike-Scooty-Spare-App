@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart';
+import '../services/settings_service.dart';
+import '../models/shop_settings.dart';
 import 'my_orders_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -43,6 +45,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         phoneController.text = user.phone;
         emailController.text = user.email;
         addressController.text = user.address;
+        final shopSettings =
+            await SettingsService.instance.getShopSettings(user.shopId);
+
+        if (shopSettings != null) {
+          shopNameController.text = shopSettings.shopName;
+          shopContactController.text = shopSettings.mobile;
+        }
       } else {
         final firebaseUser = AuthService.instance.currentUser;
 
@@ -79,6 +88,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     await UserService.instance.updateUser(updatedUser);
+    await SettingsService.instance.saveShopSettings(
+      shopId: currentUser!.shopId,
+      settings: ShopSettings(
+        shopName: shopNameController.text.trim(),
+        mobile: shopContactController.text.trim(),
+        address: addressController.text.trim(),
+        logo: '',
+      ),
+    );
 
     currentUser = updatedUser;
 
