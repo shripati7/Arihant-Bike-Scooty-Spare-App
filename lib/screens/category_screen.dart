@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/product.dart';
 import '../services/firestore_service.dart';
+import '../services/user_service.dart';
 import '../widgets/product_card.dart';
 
 class CategoryScreen extends StatefulWidget {
@@ -26,7 +27,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   void initState() {
     super.initState();
 
-    productsStream = firestoreService.getProducts();
+    loadProducts();
 
     firestoreService.getCategories().listen((list) {
       if (!mounted) return;
@@ -35,6 +36,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
         categories = ["All", ...list];
         loading = false;
       });
+    });
+  }
+
+  Future<void> loadProducts() async {
+    final shopId = await UserService.instance.getCurrentUserShopId();
+
+    if (shopId == null) return;
+
+    setState(() {
+      productsStream = firestoreService.getProducts(shopId);
     });
   }
 

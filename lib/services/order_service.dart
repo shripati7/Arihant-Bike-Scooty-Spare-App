@@ -36,7 +36,12 @@ class OrderService {
   }
 
   Future<List<OrderModel>> getOrders() async {
-    final snapshot = await _orders.orderBy('orderDate', descending: true).get();
+    final shopId = await UserService.instance.getCurrentUserShopId() ?? '';
+
+    final snapshot = await _orders
+        .where('shopId', isEqualTo: shopId)
+        .orderBy('orderDate', descending: true)
+        .get();
 
     return snapshot.docs
         .map(

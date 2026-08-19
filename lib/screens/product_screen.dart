@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/product.dart';
 import '../providers/cart_provider.dart';
+import '../services/user_service.dart';
 import '../screens/product_detail_screen.dart';
 import '../services/firestore_service.dart';
 import '../utils/pricing_helper.dart';
@@ -16,8 +17,24 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   final FirestoreService _firestoreService = FirestoreService();
+  late Stream<List<Product>> productsStream;
 
   String search = "";
+  @override
+  void initState() {
+    super.initState();
+    loadProducts();
+  }
+
+  Future<void> loadProducts() async {
+    final shopId = await UserService.instance.getCurrentUserShopId();
+
+    if (shopId == null) return;
+
+    setState(() {
+      productsStream = _firestoreService.getProducts(shopId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +64,7 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
           Expanded(
             child: StreamBuilder<List<Product>>(
-              stream: _firestoreService.getProducts(),
+              stream: productsStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(

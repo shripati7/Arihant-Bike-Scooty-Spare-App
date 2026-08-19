@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/user_service.dart';
 
 import '../admin/admin_login_screen.dart';
 import '../models/product.dart';
@@ -71,10 +72,20 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    productsStream = firestoreService.getProducts();
+    loadProducts();
 
     loadCategories();
     loadShopSettings();
+  }
+
+  Future<void> loadProducts() async {
+    final shopId = await UserService.instance.getCurrentUserShopId();
+
+    if (shopId == null) return;
+
+    setState(() {
+      productsStream = firestoreService.getProducts(shopId);
+    });
   }
 
   @override
