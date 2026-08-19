@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
@@ -27,6 +28,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool isLoading = true;
 
   UserModel? currentUser;
+  int totalProducts = 0;
+  int totalOrders = 0;
+  int pendingOrders = 0;
+  int completedOrders = 0;
 
   @override
   void initState() {
@@ -45,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         phoneController.text = user.phone;
         emailController.text = user.email;
         addressController.text = user.address;
+
         final shopSettings =
             await SettingsService.instance.getShopSettings(user.shopId);
 
@@ -52,6 +58,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           shopNameController.text = shopSettings.shopName;
           shopContactController.text = shopSettings.mobile;
         }
+
+        await loadDealerStats();
       } else {
         final firebaseUser = AuthService.instance.currentUser;
 
@@ -66,6 +74,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  Future<void> loadDealerStats() async {
+    final shopId = currentUser?.shopId ?? '';
+
+    if (shopId.isEmpty) return;
+
+    final productsSnapshot = await FirebaseFirestore.instance
+        .collection('products')
+        .where('shopId', isEqualTo: shopId)
+        .get();
+
+    final ordersSnapshot = await FirebaseFirestore.instance
+        .collection('orders')
+        .where('shopId', isEqualTo: shopId)
+        .get();
+
+    totalProducts = productsSnapshot.docs.length;
+
+    totalOrders = ordersSnapshot.docs.length;
+
+    pendingOrders = ordersSnapshot.docs.where((doc) {
+      return (doc.data()['status'] ?? '') == 'Pending';
+    }).length;
+
+    completedOrders = ordersSnapshot.docs.where((doc) {
+      return (doc.data()['status'] ?? '') == 'Completed';
+    }).length;
   }
 
   Future<void> saveProfile() async {
