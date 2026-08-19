@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'add_product_screen.dart';
 import 'manage_categories_screen.dart';
 import 'manage_products_screen.dart';
+import 'manage_dealers_screen.dart';
 import '../screens/orders_screen.dart';
 
 class AdminDashboard extends StatelessWidget {
@@ -97,6 +98,23 @@ class AdminDashboard extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => const OrdersScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 15),
+            SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.people),
+                label: const Text("Manage Dealers"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ManageDealersScreen(),
                     ),
                   );
                 },
