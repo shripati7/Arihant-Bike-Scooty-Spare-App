@@ -15,7 +15,7 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final FirestoreService firestoreService = FirestoreService();
 
-  late final Stream<List<Product>> productsStream;
+  Stream<List<Product>>? productsStream;
 
   List<String> categories = ["All"];
 
@@ -89,56 +89,61 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 ),
                 const Divider(),
                 Expanded(
-                  child: StreamBuilder<List<Product>>(
-                    stream: productsStream,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
+                  child: productsStream == null
+                      ? const Center(
                           child: CircularProgressIndicator(),
-                        );
-                      }
+                        )
+                      : StreamBuilder<List<Product>>(
+                          stream: productsStream!,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
 
-                      if (!snapshot.hasData) {
-                        return const Center(
-                          child: Text("No Products Found"),
-                        );
-                      }
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                child: Text("No Products Found"),
+                              );
+                            }
 
-                      final products = snapshot.data!
-                          .where(
-                            (product) =>
-                                selectedCategory == "All" ||
-                                product.category == selectedCategory,
-                          )
-                          .toList();
+                            final products = snapshot.data!
+                                .where(
+                                  (product) =>
+                                      selectedCategory == "All" ||
+                                      product.category == selectedCategory,
+                                )
+                                .toList();
 
-                      if (products.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            "No Products Found",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        );
-                      }
+                            if (products.isEmpty) {
+                              return const Center(
+                                child: Text(
+                                  "No Products Found",
+                                  style: TextStyle(fontSize: 18),
+                                ),
+                              );
+                            }
 
-                      return GridView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: products.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.58,
+                            return GridView.builder(
+                              padding: const EdgeInsets.all(12),
+                              itemCount: products.length,
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 0.58,
+                              ),
+                              itemBuilder: (context, index) {
+                                return ProductCard(
+                                  product: products[index],
+                                );
+                              },
+                            );
+                          },
                         ),
-                        itemBuilder: (context, index) {
-                          return ProductCard(
-                            product: products[index],
-                          );
-                        },
-                      );
-                    },
-                  ),
                 ),
               ],
             ),

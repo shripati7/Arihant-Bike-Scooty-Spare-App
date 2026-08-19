@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirestoreService firestoreService = FirestoreService();
 
   // Performance Optimization
-  late final Stream<List<Product>> productsStream;
+  Stream<List<Product>>? productsStream;
 
   int currentIndex = 0;
 
@@ -57,14 +57,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> loadShopSettings() async {
-    final settings = await SettingsService.instance.getSettings();
+    final shopId = await UserService.instance.getCurrentUserShopId();
+
+    if (shopId == null) return;
+
+    final settings = await SettingsService.instance.getShopSettings(shopId);
 
     // print("SHOP NAME = ${settings?['shopName']}");
 
     if (!mounted) return;
 
     setState(() {
-      shopName = settings?['shopName'] ?? 'My Spare Shop';
+      shopName = settings?.shopName ?? 'My Spare Shop';
     });
   }
 
@@ -81,11 +85,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> loadProducts() async {
     final shopId = await UserService.instance.getCurrentUserShopId();
 
-    if (shopId == null) return;
+    productsStream = firestoreService.getProducts(
+      shopId ?? 'shop_001',
+    );
 
-    setState(() {
-      productsStream = firestoreService.getProducts(shopId);
-    });
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -258,78 +264,83 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              StreamBuilder<List<Product>>(
-                stream: productsStream,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Padding(
-                      padding: EdgeInsets.all(40),
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
+              if (productsStream == null)
+                const Center(
+                  child: CircularProgressIndicator(),
+                )
+              else
+                StreamBuilder<List<Product>>(
+                  stream: productsStream!,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Padding(
+                        padding: EdgeInsets.all(40),
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
 
-                  if (snapshot.hasError) {
-                    return const Padding(
-                      padding: EdgeInsets.all(40),
-                      child: Center(
-                        child: Text("Something went wrong"),
-                      ),
-                    );
-                  }
+                    if (snapshot.hasError) {
+                      return const Padding(
+                        padding: EdgeInsets.all(40),
+                        child: Center(
+                          child: Text("Something went wrong"),
+                        ),
+                      );
+                    }
 
-                  final allProducts = snapshot.data ?? [];
+                    final allProducts = snapshot.data ?? [];
 
-                  final filteredProducts = allProducts.where((product) {
-                    final matchesCategory = selectedCategory == "All" ||
-                        product.category == selectedCategory;
+                    final filteredProducts = allProducts.where((product) {
+                      final matchesCategory = selectedCategory == "All" ||
+                          product.category == selectedCategory;
 
-                    final matchesSearch = product.name
-                        .toLowerCase()
-                        .contains(searchText.toLowerCase());
+                      final matchesSearch = product.name
+                          .toLowerCase()
+                          .contains(searchText.toLowerCase());
 
-                    return matchesCategory && matchesSearch;
-                  }).toList();
+                      return matchesCategory && matchesSearch;
+                    }).toList();
 
-                  if (filteredProducts.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.all(40),
-                      child: Center(
-                        child: Text(
-                          "No Products Found",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                    if (filteredProducts.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(40),
+                        child: Center(
+                          child: Text(
+                            "No Products Found",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  }
-
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    itemCount: filteredProducts.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.55,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    itemBuilder: (context, index) {
-                      return ProductCard(
-                        product: filteredProducts[index],
                       );
-                    },
-                  );
-                },
-              ),
+                    }
+
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      itemCount: filteredProducts.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.55,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      itemBuilder: (context, index) {
+                        return ProductCard(
+                          product: filteredProducts[index],
+                        );
+                      },
+                    );
+                  },
+                ),
               const SizedBox(height: 24),
             ],
           ),
