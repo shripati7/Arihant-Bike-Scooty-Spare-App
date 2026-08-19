@@ -2,13 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/subscription_config.dart';
+import '../services/auth_service.dart';
 import '../services/settings_service.dart';
+import '../services/user_service.dart';
 
 class SubscriptionScreen extends StatelessWidget {
   const SubscriptionScreen({super.key});
 
   Future<void> _contactSupport(String mobile) async {
-    final Uri whatsappUri = Uri.parse('https://wa.me/91$mobile');
+    final user = await UserService.instance.getCurrentUser();
+
+    final phone = AuthService.instance.currentUser?.phoneNumber ?? '';
+
+    final message = '''
+Hello Arihant Team,
+
+I want to activate my subscription.
+
+Shop Code: ${user?.shopCode ?? '-'}
+Name: ${user?.name ?? '-'}
+Mobile: $phone
+
+Please activate my account.
+''';
+
+    final whatsappUri = Uri.parse(
+      'https://wa.me/91$mobile?text=${Uri.encodeComponent(message)}',
+    );
 
     if (await canLaunchUrl(whatsappUri)) {
       await launchUrl(
@@ -74,7 +94,9 @@ class SubscriptionScreen extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: () => _contactSupport(config.supportNumber),
                   icon: const Icon(Icons.chat),
-                  label: const Text("Contact Support"),
+                  label: const Text(
+                    "Activate Subscription on WhatsApp",
+                  ),
                 ),
               ],
             ),
