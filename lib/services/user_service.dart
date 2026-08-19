@@ -112,4 +112,33 @@ class UserService {
       ),
     });
   }
+
+  // ==========================
+  // Dealer Management
+  // ==========================
+
+  Future<List<UserModel>> getAllDealers() async {
+    final snapshot = await _firestore.collection('users').get();
+
+    return snapshot.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
+  }
+
+  Future<void> updateSubscription({
+    required String uid,
+    required DateTime expiryDate,
+  }) async {
+    await _firestore.collection('users').doc(uid).update({
+      'trialEndDate': Timestamp.fromDate(expiryDate),
+      'isActive': true,
+    });
+  }
+
+  Future<void> updateUserStatus({
+    required String uid,
+    required bool isActive,
+  }) async {
+    await _firestore.collection('users').doc(uid).update({
+      'isActive': isActive,
+    });
+  }
 }
