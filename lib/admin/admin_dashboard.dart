@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'add_product_screen.dart';
+import 'manage_suppliers_screen.dart';
 import 'manage_categories_screen.dart';
 import 'manage_products_screen.dart';
 import 'manage_dealers_screen.dart';
@@ -169,6 +170,23 @@ class AdminDashboard extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => const ManageDealersScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 15),
+            SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.business),
+                label: const Text("Manage Suppliers"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ManageSuppliersScreen(),
                     ),
                   );
                 },
