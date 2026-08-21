@@ -1,3 +1,4 @@
+import '../screens/dealer_registration_screen.dart';
 import '../models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,16 @@ class AuthWrapper extends StatelessWidget {
 
               if (user == null) {
                 return const LoginScreen();
+              }
+              if (user.role.isEmpty ||
+                  user.shopId.isEmpty ||
+                  user.shopCode.isEmpty) {
+                return const DealerRegistrationScreen();
+              }
+
+              // Shop not created yet
+              if (user.shopId.isEmpty) {
+                return const DealerRegistrationScreen();
               }
 
               // Subscription Disabled

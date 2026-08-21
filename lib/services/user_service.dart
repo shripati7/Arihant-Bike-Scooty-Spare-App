@@ -32,9 +32,9 @@ class UserService {
       email: user.email ?? '',
       address: '',
       createdAt: Timestamp.now(),
-      role: 'dealer',
+      role: '',
       shopId: '',
-      shopCode: 'SHOP${DateTime.now().millisecondsSinceEpoch}',
+      shopCode: '',
       isActive: true,
       trialEndDate: Timestamp.fromDate(
         DateTime.now().add(

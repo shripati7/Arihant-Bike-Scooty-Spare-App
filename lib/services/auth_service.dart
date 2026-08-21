@@ -43,20 +43,6 @@ class AuthService {
 
             await UserService.instance.saveUser();
 
-            final currentUser = await UserService.instance.getCurrentUser();
-
-            if (currentUser != null &&
-                (currentUser.role.isEmpty ||
-                    currentUser.shopId.isEmpty ||
-                    currentUser.shopCode.isEmpty)) {
-              final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-              await UserService.instance.assignDealerRole(
-                shopId: 'shop_$timestamp',
-                shopCode: 'SHOP$timestamp',
-              );
-            }
-
             debugPrint(
               "Auto Login Success ${result.user?.uid}",
             );
@@ -121,20 +107,6 @@ class AuthService {
       );
 
       await UserService.instance.saveUser();
-
-      final currentUser = await UserService.instance.getCurrentUser();
-
-      if (currentUser != null &&
-          (currentUser.role.isEmpty ||
-              currentUser.shopId.isEmpty ||
-              currentUser.shopCode.isEmpty)) {
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-        await UserService.instance.assignDealerRole(
-          shopId: 'shop_$timestamp',
-          shopCode: 'SHOP$timestamp',
-        );
-      }
 
       debugPrint(
         "OTP Verification Success",
