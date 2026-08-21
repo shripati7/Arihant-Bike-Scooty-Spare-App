@@ -16,6 +16,7 @@ class OrderService {
 
   Future<void> placeOrder(OrderModel order) async {
     final shopId = await UserService.instance.getCurrentUserShopId() ?? '';
+    debugPrint("CURRENT SHOP ID = $shopId");
 
     debugPrint("ORDER SHOP ID = $shopId");
 

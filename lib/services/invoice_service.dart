@@ -11,7 +11,7 @@ import 'package:share_plus/share_plus.dart';
 import '../models/order_model.dart';
 
 class InvoiceService {
-  static const String shopName = "ARIHANT BIKE & SCOOTY SPARE";
+  static const String shopName = 'SupplyHub';
 
   static const String phone = "8178478220";
 
