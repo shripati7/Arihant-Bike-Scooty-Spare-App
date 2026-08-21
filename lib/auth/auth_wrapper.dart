@@ -75,6 +75,7 @@ class AuthWrapper extends StatelessWidget {
                       role: user.role,
                       shopId: user.shopId,
                       shopCode: user.shopCode,
+                      supplierId: user.supplierId,
                       isActive: false,
                       trialEndDate: user.trialEndDate,
                     ),

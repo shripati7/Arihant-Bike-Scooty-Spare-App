@@ -35,6 +35,7 @@ class UserService {
       role: '',
       shopId: '',
       shopCode: '',
+      supplierId: '',
       isActive: true,
       trialEndDate: Timestamp.fromDate(
         DateTime.now().add(

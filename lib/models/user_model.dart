@@ -12,6 +12,7 @@ class UserModel {
   final String role;
   final String shopId;
   final String shopCode;
+  final String supplierId;
   final bool isActive;
   final Timestamp? trialEndDate;
 
@@ -25,6 +26,7 @@ class UserModel {
     this.role = '',
     this.shopId = '',
     this.shopCode = '',
+    this.supplierId = '',
     this.isActive = true,
     this.trialEndDate,
   });
@@ -40,6 +42,7 @@ class UserModel {
       'role': role,
       'shopId': shopId,
       'shopCode': shopCode,
+      'supplierId': supplierId,
       'isActive': isActive,
       'trialEndDate': trialEndDate,
     };
@@ -56,6 +59,7 @@ class UserModel {
       role: map['role'] ?? '',
       shopId: map['shopId'] ?? '',
       shopCode: map['shopCode'] ?? '',
+      supplierId: map['supplierId'] ?? '',
       isActive: map['isActive'] ?? true,
       trialEndDate: map['trialEndDate'],
     );

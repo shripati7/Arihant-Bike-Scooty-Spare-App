@@ -119,6 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       role: currentUser!.role,
       shopId: currentUser!.shopId,
       shopCode: currentUser!.shopCode,
+      supplierId: currentUser!.supplierId,
       isActive: currentUser!.isActive,
       trialEndDate: currentUser!.trialEndDate,
     );
