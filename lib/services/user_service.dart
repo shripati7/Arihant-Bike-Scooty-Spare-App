@@ -121,6 +121,28 @@ class UserService {
   // ==========================
   // Dealer Management
   // ==========================
+  Future<void> assignSupplierRole({
+    required String supplierId,
+  }) async {
+    final user = _auth.currentUser;
+
+    if (user == null) return;
+
+    await _firestore.collection('users').doc(user.uid).update({
+      'role': 'supplier',
+      'supplierId': supplierId,
+      'isActive': true,
+      'trialEndDate': Timestamp.fromDate(
+        DateTime.now().add(
+          const Duration(days: 60),
+        ),
+      ),
+    });
+  }
+
+// ==========================
+// Dealer Management
+// ==========================
 
   Future<List<UserModel>> getAllDealers() async {
     final snapshot = await _firestore.collection('users').get();
