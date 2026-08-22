@@ -9,9 +9,19 @@ class ManageSuppliersScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Manage Suppliers'),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Add Supplier Coming Soon'),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
       body: const Center(
         child: Text(
-          'Supplier Management Coming Soon',
+          'No Suppliers Found',
           style: TextStyle(fontSize: 18),
         ),
       ),
