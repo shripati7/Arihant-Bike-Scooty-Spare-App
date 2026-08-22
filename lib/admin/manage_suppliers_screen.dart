@@ -2,78 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../models/supplier_model.dart';
 import '../services/supplier_service.dart';
+import 'add_supplier_screen.dart';
 
 class ManageSuppliersScreen extends StatelessWidget {
   const ManageSuppliersScreen({super.key});
-
-  void _showAddSupplierDialog(BuildContext context) {
-    final companyController = TextEditingController();
-    final codeController = TextEditingController();
-    final ownerController = TextEditingController();
-    final mobileController = TextEditingController();
-    final emailController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Add Supplier'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: companyController,
-                decoration: const InputDecoration(
-                  labelText: 'Company Name',
-                ),
-              ),
-              TextField(
-                controller: codeController,
-                decoration: const InputDecoration(
-                  labelText: 'Company Code',
-                ),
-              ),
-              TextField(
-                controller: ownerController,
-                decoration: const InputDecoration(
-                  labelText: 'Owner Name',
-                ),
-              ),
-              TextField(
-                controller: mobileController,
-                decoration: const InputDecoration(
-                  labelText: 'Mobile',
-                ),
-              ),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Supplier Save Phase Coming Next'),
-                ),
-              );
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +14,23 @@ class ManageSuppliersScreen extends StatelessWidget {
         title: const Text('Manage Suppliers'),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddSupplierDialog(context),
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AddSupplierScreen(),
+            ),
+          );
+
+          if (context.mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ManageSuppliersScreen(),
+              ),
+            );
+          }
+        },
         child: const Icon(Icons.add),
       ),
       body: FutureBuilder<List<SupplierModel>>(
