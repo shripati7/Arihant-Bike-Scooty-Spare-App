@@ -104,7 +104,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                       ),
                     ),
                     title: Text(
-                      order.customerName,
+                      "Order #${(order.id ?? '').substring(0, 6)}",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 17,
@@ -115,7 +115,9 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(order.mobile),
+                          Text(
+                            "${order.items.length} Product(s)",
+                          ),
                           const SizedBox(height: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
