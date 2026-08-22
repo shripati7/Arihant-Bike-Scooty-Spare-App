@@ -193,14 +193,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           "Order Details",
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.delete,
-            ),
-            onPressed: deleteOrder,
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -355,23 +347,26 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       leading: const Icon(
                         Icons.local_shipping,
                       ),
-                      title: DropdownButton<String>(
-                        value: selectedStatus,
-                        isExpanded: true,
-                        underline: const SizedBox(),
-                        items: statusList
-                            .map(
-                              (status) => DropdownMenuItem(
-                                value: status,
-                                child: Text(status),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            updateStatus(value);
-                          }
-                        },
+                      title: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: getStatusColor(selectedStatus)
+                              .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: getStatusColor(selectedStatus),
+                          ),
+                        ),
+                        child: Text(
+                          selectedStatus,
+                          style: TextStyle(
+                            color: getStatusColor(selectedStatus),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                       subtitle: const Text(
                         "Status",

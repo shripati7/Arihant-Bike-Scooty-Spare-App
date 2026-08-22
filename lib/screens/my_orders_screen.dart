@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'order_details_screen.dart';
 
 import '../models/order_model.dart';
 import '../services/order_service.dart';
@@ -14,7 +15,6 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
   final OrderService orderService = OrderService.instance;
 
   bool isLoading = true;
-
   List<OrderModel> orders = [];
 
   @override
@@ -57,10 +57,10 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
     if (isLoading) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('My Orders'),
+          title: const Text('My Orders'),
           centerTitle: true,
         ),
-        body: Center(
+        body: const Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -86,6 +86,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
               itemCount: orders.length,
               itemBuilder: (context, index) {
                 final order = orders[index];
+
                 return Card(
                   elevation: 4,
                   margin: const EdgeInsets.only(bottom: 14),
@@ -157,8 +158,17 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                         ),
                       ],
                     ),
-                    onTap: () {
-                      // Order Details Screen (next step)
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => OrderDetailsScreen(
+                            order: order,
+                          ),
+                        ),
+                      );
+
+                      loadOrders();
                     },
                   ),
                 );
