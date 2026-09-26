@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'add_product_screen.dart';
 import 'manage_suppliers_screen.dart';
 import 'manage_categories_screen.dart';
 import 'manage_products_screen.dart';
-import 'manage_dealers_screen.dart';
-import '../screens/orders_screen.dart';
+import '../screens/all_orders_screen.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
   Future<Map<String, int>> getStats() async {
     final users = await FirebaseFirestore.instance
         .collection('users')
-        .where('role', isEqualTo: 'dealer')
+        .where('role', isEqualTo: 'supplier')
         .get();
 
     final products =
@@ -21,16 +19,16 @@ class AdminDashboard extends StatelessWidget {
 
     final orders = await FirebaseFirestore.instance.collection('orders').get();
 
-    final activeDealers = users.docs
+    final activeSuppliers = users.docs
         .where(
           (e) => e.data()['isActive'] == true,
         )
         .length;
 
     return {
-      'dealers': users.docs.length,
-      'active': activeDealers,
-      'expired': users.docs.length - activeDealers,
+      'suppliers': users.docs.length,
+      'active': activeSuppliers,
+      'expired': users.docs.length - activeSuppliers,
       'products': products.docs.length,
       'orders': orders.docs.length,
     };
@@ -79,7 +77,7 @@ class AdminDashboard extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        Text("Dealers : ${stats['dealers']}"),
+                        Text("Suppliers : ${stats['suppliers']}"),
                         Text("Active : ${stats['active']}"),
                         Text("Expired : ${stats['expired']}"),
                         Text("Products : ${stats['products']}"),
@@ -91,23 +89,6 @@ class AdminDashboard extends StatelessWidget {
               },
             ),
             const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.add_box),
-                label: const Text("Add Product"),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AddProductScreen(),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 15),
             SizedBox(
               width: double.infinity,
               height: 55,
@@ -152,24 +133,7 @@ class AdminDashboard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const OrdersScreen(),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 15),
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.people),
-                label: const Text("Manage Dealers"),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ManageDealersScreen(),
+                      builder: (_) => const AllOrdersScreen(),
                     ),
                   );
                 },

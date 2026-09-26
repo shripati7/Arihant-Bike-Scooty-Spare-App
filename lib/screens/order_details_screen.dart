@@ -373,45 +373,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: getStatusColor(
-                          selectedStatus,
-                        ).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: getStatusColor(
-                            selectedStatus,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.circle,
-                            size: 12,
-                            color: getStatusColor(
-                              selectedStatus,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            selectedStatus,
-                            style: TextStyle(
-                              color: getStatusColor(
-                                selectedStatus,
-                              ),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
